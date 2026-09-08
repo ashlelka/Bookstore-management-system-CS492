@@ -18,7 +18,7 @@ Book information is stored in a JSON file named books.json.
 
 import json
 import os
-
+from book import Book
 
 # JSON file used as the bookstore inventory database.
 FILE_NAME = "books.json"
@@ -180,23 +180,23 @@ def add_book():
         )
         return
 
-    # Build the new inventory record.
-    new_book = {
-        "book_id": book_id,
-        "isbn": isbn,
-        "title": title,
-        "author": author,
-        "category": category,
-        "publication_year": publication_year,
-        "edition": edition,
-        "format": book_format,
-        "price": price,
-        "quantity": quantity,
-        "location": location
-    }
+    # Create a Book object using the information entered by the user.
+    new_book = Book(
+        book_id,
+        isbn,
+        title,
+        author,
+        category,
+        publication_year,
+        edition,
+        book_format,
+        price,
+        quantity,
+        location
+)
 
-    # Add the record to the inventory list.
-    books.append(new_book)
+# Convert the Book object to a dictionary before saving it to JSON.
+    books.append(new_book.to_dict())
 
     # Save the updated list to JSON.
     save_books(books)
