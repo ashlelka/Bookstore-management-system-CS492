@@ -1,0 +1,15 @@
+[
+    {
+        "book_id": 1,
+        "isbn": "9780743273565",
+        "title": "The Great Gatsby",
+        "author": "F. Scott FitzGerald",
+        "category": "Fiction",
+        "publication_year": "1925",
+        "edition": "First",
+        "format": "Paperback",
+        "price": 10.99,
+        "quantity": 5,
+        "location": "Aisle A - Shelf 1"
+    }
+]
