@@ -1,15 +1,14 @@
 """
 Bookstore Management System
-Sprint 1 - T1-001
+Sprint 1 - T1-003
 Developer: Ashley Lindamood
 
 Description:
-This is the main program for the Bookstore Management System.
-It provides a menu that allows bookstore employees to manage
-inventory stored in the books.json file.
+This program provides the main menu for the bookstore
+inventory CRUD system. Inventory information is stored
+in a JSON file.
 """
 
-# Import the inventory functions from inventory.py.
 from inventory import (
     add_book,
     view_inventory,
@@ -21,11 +20,12 @@ from inventory import (
 
 def display_menu():
     """
-    Displays the main inventory management menu.
+    Displays the bookstore inventory CRUD menu.
     """
 
     print("\n================================")
     print("  BOOKSTORE MANAGEMENT SYSTEM")
+    print("     INVENTORY MANAGEMENT")
     print("================================")
     print("1. Add Book")
     print("2. View Inventory")
@@ -37,53 +37,52 @@ def display_menu():
 
 def main():
     """
-    Controls the main program loop and sends the user
-    to the selected inventory function.
+    Runs the main bookstore inventory menu.
     """
 
-    # Keep displaying the menu until the user selects Exit.
     while True:
 
         display_menu()
 
-        # Ask the user which inventory operation to perform.
-        choice = input("\nSelect an option: ")
+        choice = input(
+            "\nSelect an option: "
+        ).strip()
 
-        # Add a new book to the JSON inventory.
+        # CREATE
         if choice == "1":
             add_book()
 
-        # Display all books currently in inventory.
+        # READ
         elif choice == "2":
             view_inventory()
 
-        # Search for a book using title, author, or ISBN.
+        # READ / SEARCH
         elif choice == "3":
             search_book()
 
-        # Modify an existing inventory record.
+        # UPDATE
         elif choice == "4":
             edit_book()
 
-        # Remove an existing book from inventory.
+        # DELETE
         elif choice == "5":
             remove_book()
 
-        # End the application.
         elif choice == "6":
+
             print(
                 "\nBookstore Management System closed."
             )
+
             break
 
-        # Prevent invalid menu selections from stopping the program.
         else:
+
             print(
-                "\nInvalid selection. Please choose 1-6."
+                "\nInvalid selection. "
+                "Please choose 1 through 6."
             )
 
 
-# This condition makes sure main() runs only when
-# this file is executed directly.
 if __name__ == "__main__":
     main()

@@ -1,106 +1,186 @@
 """
 Bookstore Management System
-Sprint 1 - T1-001
+Sprint 1 - T1-003
 Developer: Ashley Lindamood
 
 Description:
-This module manages the bookstore's inventory using a JSON file
-as the data storage system. It allows the user to add, view,
-search, edit, and remove books from inventory.
+This module provides complete CRUD functionality for the
+Bookstore Management System inventory.
+
+CRUD Operations:
+Create - Add a new book
+Read   - View and search books
+Update - Edit an existing book
+Delete - Remove a book
+
+Book information is stored in a JSON file named books.json.
 """
 
-# Import json so Python can read and write JSON data.
 import json
-
-# Import os so the program can check whether the JSON file exists.
 import os
 
 
-# Name of the JSON file used to store bookstore inventory.
+# JSON file used as the bookstore inventory database.
 FILE_NAME = "books.json"
 
 
 def load_books():
     """
-    Loads all book records from the JSON inventory file.
-    Returns an empty list if the file does not exist or
-    contains invalid JSON data.
+    Reads inventory records from books.json.
+
+    Returns:
+        list: A list containing all book records.
     """
 
-    # Check whether the inventory file already exists.
+    # If the JSON file does not exist yet, return an empty inventory.
     if not os.path.exists(FILE_NAME):
         return []
 
     try:
-        # Open the JSON file in read mode.
+        # Open the file and convert JSON data into a Python list.
         with open(FILE_NAME, "r") as file:
             return json.load(file)
 
     except json.JSONDecodeError:
-        # Prevent the program from crashing if the JSON file is empty
-        # or contains incorrectly formatted JSON.
+        # Prevent the application from crashing if the JSON
+        # file contains invalid or incomplete data.
+        print("Warning: Inventory file contains invalid JSON.")
         return []
 
 
 def save_books(books):
     """
-    Saves the current list of books to the JSON inventory file.
+    Saves the current inventory list to books.json.
     """
 
-    # Open the JSON file in write mode.
+    # Open books.json in write mode and replace its contents
+    # with the current inventory.
     with open(FILE_NAME, "w") as file:
-
-        # indent=4 makes the JSON file easier for humans to read.
         json.dump(books, file, indent=4)
 
 
+def generate_book_id(books):
+    """
+    Generates the next available Book ID.
+
+    This method prevents duplicate IDs if a book was previously
+    deleted from inventory.
+    """
+
+    # If there are no books, the first ID will be 1.
+    if not books:
+        return 1
+
+    # Find the largest current Book ID and add 1.
+    return max(book["book_id"] for book in books) + 1
+
+
+def isbn_exists(books, isbn, ignore_book_id=None):
+    """
+    Checks whether an ISBN already exists in inventory.
+
+    Args:
+        books: Current inventory list.
+        isbn: ISBN being checked.
+        ignore_book_id: Used while editing so the current book
+                        does not count as a duplicate.
+
+    Returns:
+        bool: True if the ISBN already exists.
+    """
+
+    for book in books:
+
+        if (
+            book["isbn"] == isbn
+            and book["book_id"] != ignore_book_id
+        ):
+            return True
+
+    return False
+
+
+# --------------------------------------------------
+# CREATE
+# --------------------------------------------------
+
 def add_book():
     """
-    Collects information about a new book and adds it
-    to the bookstore inventory.
+    Adds a new book to bookstore inventory.
     """
 
-    # Load the current inventory before adding another book.
     books = load_books()
 
-    # Generate a simple unique ID for the new book.
-    # The first book receives ID 1.
-    book_id = len(books) + 1
+    print("\n==============================")
+    print("       ADD INVENTORY")
+    print("==============================")
 
-    print("\n--- ADD NEW BOOK ---")
+    # Generate a unique ID for the new inventory record.
+    book_id = generate_book_id(books)
 
-    # Collect book information from the user.
-    title = input("Enter book title: ")
-    author = input("Enter author: ")
-    isbn = input("Enter ISBN: ")
-    category = input("Enter category: ")
-    publication_year = input("Enter publication year: ")
-    edition = input("Enter edition: ")
-    book_format = input("Enter format: ")
+    title = input("Enter book title: ").strip()
+    author = input("Enter author: ").strip()
+    isbn = input("Enter ISBN: ").strip()
+    category = input("Enter category: ").strip()
+    publication_year = input(
+        "Enter publication year: "
+    ).strip()
 
-    # Price must be a decimal number and quantity must be an integer.
+    edition = input("Enter edition: ").strip()
+    book_format = input("Enter format: ").strip()
+    location = input("Enter store location: ").strip()
+
+    # Make sure required text fields are not empty.
+    if not title or not author or not isbn:
+        print(
+            "\nTitle, author, and ISBN are required."
+        )
+        return
+
+    # Prevent duplicate ISBN values.
+    if isbn_exists(books, isbn):
+        print(
+            "\nA book with this ISBN already exists."
+        )
+        return
+
+    # Validate price.
     try:
-        price = float(input("Enter price: $"))
-        quantity = int(input("Enter quantity: "))
+        price = float(
+            input("Enter price: $")
+        )
+
+        if price < 0:
+            print(
+                "\nPrice cannot be negative."
+            )
+            return
 
     except ValueError:
-        print("Price and quantity must be numeric.")
+        print(
+            "\nPrice must be a valid number."
+        )
         return
 
-    # A bookstore item cannot have a negative price.
-    if price < 0:
-        print("Price cannot be negative.")
+    # Validate quantity.
+    try:
+        quantity = int(
+            input("Enter quantity: ")
+        )
+
+        if quantity < 0:
+            print(
+                "\nQuantity cannot be negative."
+            )
+            return
+
+    except ValueError:
+        print(
+            "\nQuantity must be a whole number."
+        )
         return
 
-    # Inventory is not allowed to contain a negative quantity.
-    if quantity < 0:
-        print("Quantity cannot be negative.")
-        return
-
-    # Store location helps employees locate the physical book.
-    location = input("Enter store location: ")
-
-    # Create a dictionary containing all information about the book.
+    # Build the new inventory record.
     new_book = {
         "book_id": book_id,
         "isbn": isbn,
@@ -115,207 +195,401 @@ def add_book():
         "location": location
     }
 
-    # Add the new book dictionary to the inventory list.
+    # Add the record to the inventory list.
     books.append(new_book)
 
-    # Save the updated inventory to books.json.
+    # Save the updated list to JSON.
     save_books(books)
 
-    print("\nBook added successfully.")
+    print(
+        f"\nBook added successfully."
+        f" Book ID: {book_id}"
+    )
 
+
+# --------------------------------------------------
+# READ
+# --------------------------------------------------
 
 def view_inventory():
     """
-    Displays all books currently stored in the inventory.
+    Displays every book currently stored in inventory.
     """
 
-    # Load inventory information from the JSON file.
     books = load_books()
 
-    # Check whether there are any books to display.
+    print("\n================================")
+    print("       BOOKSTORE INVENTORY")
+    print("================================")
+
     if not books:
         print("\nInventory is empty.")
         return
 
-    print("\n--- BOOKSTORE INVENTORY ---")
-
-    # Loop through each book and display its information.
+    # Display each book in an easy-to-read format.
     for book in books:
 
-        print(f"\nBook ID: {book['book_id']}")
-        print(f"Title: {book['title']}")
-        print(f"Author: {book['author']}")
-        print(f"ISBN: {book['isbn']}")
-        print(f"Category: {book['category']}")
-        print(f"Year: {book['publication_year']}")
-        print(f"Edition: {book['edition']}")
-        print(f"Format: {book['format']}")
-        print(f"Price: ${book['price']:.2f}")
-        print(f"Quantity: {book['quantity']}")
-        print(f"Location: {book['location']}")
+        print("--------------------------------")
+        print(
+            f"Book ID: {book['book_id']}"
+        )
+        print(
+            f"ISBN: {book['isbn']}"
+        )
+        print(
+            f"Title: {book['title']}"
+        )
+        print(
+            f"Author: {book['author']}"
+        )
+        print(
+            f"Category: {book['category']}"
+        )
+        print(
+            f"Year: {book['publication_year']}"
+        )
+        print(
+            f"Edition: {book['edition']}"
+        )
+        print(
+            f"Format: {book['format']}"
+        )
+        print(
+            f"Price: ${book['price']:.2f}"
+        )
+        print(
+            f"Quantity: {book['quantity']}"
+        )
+        print(
+            f"Location: {book['location']}"
+        )
+
+    print("--------------------------------")
 
 
 def search_book():
     """
-    Searches inventory using a title, author, or ISBN.
+    Searches inventory by Book ID, ISBN, title,
+    author, or category.
     """
 
-    # Load all books from the JSON inventory.
     books = load_books()
 
-    print("\n--- SEARCH INVENTORY ---")
+    if not books:
+        print("\nInventory is empty.")
+        return
 
-    # Convert the search value to lowercase so the search
-    # is not affected by capitalization.
+    print("\n==============================")
+    print("       SEARCH INVENTORY")
+    print("==============================")
+
     search_term = input(
-        "Enter title, author, or ISBN to search: "
-    ).lower()
+        "Enter ID, ISBN, title, author, or category: "
+    ).strip().lower()
 
-    # Create an empty list to hold matching books.
     results = []
 
-    # Check each book for the user's search value.
+    # Check multiple inventory fields for a match.
     for book in books:
 
         if (
-            search_term in book["title"].lower()
-            or search_term in book["author"].lower()
-            or search_term in book["isbn"].lower()
+            search_term == str(
+                book["book_id"]
+            ).lower()
+            or search_term in
+            book["isbn"].lower()
+            or search_term in
+            book["title"].lower()
+            or search_term in
+            book["author"].lower()
+            or search_term in
+            book["category"].lower()
         ):
             results.append(book)
 
-    # Tell the user if no matching book was found.
     if not results:
-        print("\nNo matching books found.")
+        print(
+            "\nNo matching books found."
+        )
         return
 
     print("\n--- SEARCH RESULTS ---")
 
-    # Display all books that matched the search.
     for book in results:
 
+        print("--------------------------------")
         print(
-            f"{book['book_id']} | "
-            f"{book['title']} | "
-            f"{book['author']} | "
-            f"Qty: {book['quantity']}"
+            f"Book ID: {book['book_id']}"
+        )
+        print(
+            f"Title: {book['title']}"
+        )
+        print(
+            f"Author: {book['author']}"
+        )
+        print(
+            f"ISBN: {book['isbn']}"
+        )
+        print(
+            f"Category: {book['category']}"
+        )
+        print(
+            f"Price: ${book['price']:.2f}"
+        )
+        print(
+            f"Quantity: {book['quantity']}"
+        )
+        print(
+            f"Location: {book['location']}"
         )
 
 
+# --------------------------------------------------
+# UPDATE
+# --------------------------------------------------
+
 def edit_book():
     """
-    Allows an existing inventory record to be updated
-    using its Book ID.
+    Updates an existing book using its Book ID.
     """
 
-    # Load the existing inventory.
     books = load_books()
 
-    print("\n--- EDIT BOOK ---")
-
-    # Validate that the entered Book ID is a number.
-    try:
-        book_id = int(input("Enter Book ID to edit: "))
-
-    except ValueError:
-        print("Book ID must be a number.")
+    if not books:
+        print("\nInventory is empty.")
         return
 
-    # Search the inventory for the requested Book ID.
+    print("\n==============================")
+    print("        EDIT INVENTORY")
+    print("==============================")
+
+    try:
+        book_id = int(
+            input("Enter Book ID to edit: ")
+        )
+
+    except ValueError:
+        print(
+            "\nBook ID must be a number."
+        )
+        return
+
+    # Search for the selected book.
     for book in books:
 
         if book["book_id"] == book_id:
 
-            print("\nLeave a field blank to keep the current value.")
+            print(
+                "\nLeave a field blank to keep "
+                "the current value."
+            )
 
-            # Display the current values while requesting new values.
             title = input(
                 f"Title [{book['title']}]: "
-            )
+            ).strip()
 
             author = input(
                 f"Author [{book['author']}]: "
-            )
+            ).strip()
+
+            isbn = input(
+                f"ISBN [{book['isbn']}]: "
+            ).strip()
 
             category = input(
                 f"Category [{book['category']}]: "
-            )
+            ).strip()
+
+            publication_year = input(
+                f"Publication Year "
+                f"[{book['publication_year']}]: "
+            ).strip()
+
+            edition = input(
+                f"Edition [{book['edition']}]: "
+            ).strip()
+
+            book_format = input(
+                f"Format [{book['format']}]: "
+            ).strip()
+
+            price = input(
+                f"Price [{book['price']}]: "
+            ).strip()
 
             quantity = input(
                 f"Quantity [{book['quantity']}]: "
-            )
+            ).strip()
 
-            # Only update a value if the user entered something.
+            location = input(
+                f"Location [{book['location']}]: "
+            ).strip()
+
+            # Update text fields only when new data
+            # has been provided.
             if title:
                 book["title"] = title
 
             if author:
                 book["author"] = author
 
+            if isbn:
+
+                # Make sure another book does not
+                # already use this ISBN.
+                if isbn_exists(
+                    books,
+                    isbn,
+                    book_id
+                ):
+                    print(
+                        "\nAnother book already "
+                        "uses this ISBN."
+                    )
+                    return
+
+                book["isbn"] = isbn
+
             if category:
                 book["category"] = category
 
+            if publication_year:
+                book[
+                    "publication_year"
+                ] = publication_year
+
+            if edition:
+                book["edition"] = edition
+
+            if book_format:
+                book["format"] = book_format
+
+            # Validate the new price if one was entered.
+            if price:
+
+                try:
+                    new_price = float(price)
+
+                    if new_price < 0:
+                        print(
+                            "\nPrice cannot be negative."
+                        )
+                        return
+
+                    book["price"] = new_price
+
+                except ValueError:
+                    print(
+                        "\nPrice must be numeric."
+                    )
+                    return
+
+            # Validate the new quantity.
             if quantity:
 
                 try:
-                    new_quantity = int(quantity)
+                    new_quantity = int(
+                        quantity
+                    )
 
-                    # Prevent inventory from becoming negative.
                     if new_quantity < 0:
-                        print("Quantity cannot be negative.")
+                        print(
+                            "\nQuantity cannot "
+                            "be negative."
+                        )
                         return
 
-                    book["quantity"] = new_quantity
+                    book[
+                        "quantity"
+                    ] = new_quantity
 
                 except ValueError:
-                    print("Quantity must be a number.")
+                    print(
+                        "\nQuantity must be a "
+                        "whole number."
+                    )
                     return
 
-            # Save the updated inventory back to the JSON file.
+            if location:
+                book["location"] = location
+
+            # Save all updates to the JSON file.
             save_books(books)
 
-            print("\nBook updated successfully.")
+            print(
+                "\nBook updated successfully."
+            )
             return
 
-    # This message appears if no matching Book ID was found.
-    print("\nBook not found.")
+    print(
+        "\nBook ID not found."
+    )
 
+
+# --------------------------------------------------
+# DELETE
+# --------------------------------------------------
 
 def remove_book():
     """
-    Removes a book from inventory using its Book ID.
+    Deletes a book from inventory using its Book ID.
     """
 
-    # Load the current inventory.
     books = load_books()
 
-    print("\n--- REMOVE BOOK ---")
+    if not books:
+        print("\nInventory is empty.")
+        return
 
-    # Validate the Book ID entered by the user.
+    print("\n==============================")
+    print("       REMOVE INVENTORY")
+    print("==============================")
+
     try:
         book_id = int(
             input("Enter Book ID to remove: ")
         )
 
     except ValueError:
-        print("Book ID must be a number.")
+        print(
+            "\nBook ID must be a number."
+        )
         return
 
-    # Search for the matching book.
+    # Search for the requested inventory record.
     for book in books:
 
         if book["book_id"] == book_id:
 
-            # Remove the book from the list.
-            books.remove(book)
-
-            # Save the updated list to the JSON file.
-            save_books(books)
-
             print(
-                f"\n{book['title']} removed successfully."
+                f"\nBook found: "
+                f"{book['title']}"
             )
+
+            # Ask for confirmation before permanently
+            # deleting inventory data.
+            confirm = input(
+                "Are you sure you want to remove "
+                "this book? (y/n): "
+            ).strip().lower()
+
+            if confirm == "y":
+
+                books.remove(book)
+
+                save_books(books)
+
+                print(
+                    "\nBook removed successfully."
+                )
+
+            else:
+                print(
+                    "\nRemoval cancelled."
+                )
+
             return
 
-    # Display an error if the requested ID does not exist.
-    print("\nBook not found.")
+    print(
+        "\nBook ID not found."
+    )
