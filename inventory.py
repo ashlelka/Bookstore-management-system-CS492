@@ -98,7 +98,124 @@ def isbn_exists(books, isbn, ignore_book_id=None):
             return True
 
     return False
+# ==========================================================
+# CRUD HELPER FUNCTIONS
+# These functions allow CRUD operations to be tested
+# without requiring keyboard input.
+# ==========================================================
 
+
+def create_book_record(
+    isbn,
+    title,
+    author,
+    category,
+    publication_year,
+    edition,
+    book_format,
+    price,
+    quantity,
+    location
+):
+    """
+    Creates a new book record and saves it to the JSON file.
+    """
+
+    books = load_books()
+
+    # Prevent duplicate ISBN numbers.
+    if isbn_exists(books, isbn):
+        return False, "Duplicate ISBN."
+
+    # Prevent negative prices.
+    if price < 0:
+        return False, "Price cannot be negative."
+
+    # Prevent negative inventory quantities.
+    if quantity < 0:
+        return False, "Quantity cannot be negative."
+
+    # Generate a unique Book ID.
+    book_id = generate_book_id(books)
+
+    # Create the Book object.
+    new_book = Book(
+        book_id,
+        isbn,
+        title,
+        author,
+        category,
+        publication_year,
+        edition,
+        book_format,
+        price,
+        quantity,
+        location
+    )
+
+    # Convert the Book object to a dictionary.
+    books.append(new_book.to_dict())
+
+    # Save the inventory.
+    save_books(books)
+
+    return True, book_id
+
+
+def find_book_by_id(book_id):
+    """
+    Finds a book using its Book ID.
+    """
+
+    books = load_books()
+
+    for book in books:
+        if book["book_id"] == book_id:
+            return book
+
+    return None
+
+
+def update_book_quantity(book_id, new_quantity):
+    """
+    Updates the quantity of an existing book.
+    """
+
+    # Inventory cannot be negative.
+    if new_quantity < 0:
+        return False
+
+    books = load_books()
+
+    for book in books:
+        if book["book_id"] == book_id:
+
+            book["quantity"] = new_quantity
+
+            save_books(books)
+
+            return True
+
+    return False
+
+
+def delete_book_by_id(book_id):
+    """
+    Deletes a book using its Book ID.
+    """
+
+    books = load_books()
+
+    for book in books:
+        if book["book_id"] == book_id:
+
+            books.remove(book)
+
+            save_books(books)
+
+            return True
+
+    return False
 
 # --------------------------------------------------
 # CREATE
