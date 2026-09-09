@@ -216,6 +216,78 @@ def delete_book_by_id(book_id):
             return True
 
     return False
+# Decrement book quantities after a sale. 
+# This function is used by the sales system to update inventory after books are purchased.
+def decrement_quantities(sale_items):
+    """
+    Decreases book quantities after a successful sale.
+
+    This function is used by the sales system to update
+    inventory after books are purchased.
+
+    Args:
+        sale_items: List of books and quantities sold.
+
+    Returns:
+        list: Results of each inventory update.
+    """
+
+    books = load_books()
+    results = []
+
+    for sale_item in sale_items:
+
+        book_id = sale_item.get("book_id")
+        quantity_sold = sale_item.get("quantity", 0)
+
+        book_found = False
+
+        for book in books:
+
+            if book["book_id"] == book_id:
+                book_found = True
+
+                # Quantity sold must be greater than zero.
+                if quantity_sold <= 0:
+                    results.append({
+                        "book_id": book_id,
+                        "success": False,
+                        "message": "Sale quantity must be greater than zero."
+                    })
+                    break
+
+                # Do not allow inventory to become negative.
+                if book["quantity"] < quantity_sold:
+                    results.append({
+                        "book_id": book_id,
+                        "success": False,
+                        "message": "Insufficient inventory."
+                    })
+                    break
+
+                # Subtract the sold quantity.
+                book["quantity"] -= quantity_sold
+
+                results.append({
+                    "book_id": book_id,
+                    "success": True,
+                    "message": "Inventory updated successfully.",
+                    "remaining_quantity": book["quantity"]
+                })
+
+                break
+
+        if not book_found:
+            results.append({
+                "book_id": book_id,
+                "success": False,
+                "message": "Book not found."
+            })
+
+    # Save inventory changes.
+    save_books(books)
+
+    return results
 
 # --------------------------------------------------
 # CREATE

@@ -1,10 +1,3 @@
-"""
-Bookstore Management System
-Sprint 1 - T1-007
-Developer: Alexis Silva
-"""
-
-"""Statewide sales tax rates only. Local city/county add-ons are not included. AK, DE, MT, NH, and OR have no state sales tax."""
 {
   "year": 2026,
   "states": [
