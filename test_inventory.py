@@ -89,6 +89,32 @@ def test_update():
 
     print("Test 3 - UPDATE: PASSED")
 
+def test_inventory_update_after_sale():
+    """
+    Tests T1-007 inventory update after a successful sale.
+    """
+
+    # Book currently has quantity 8 after test_update().
+    sale_items = [
+        {
+            "book_id": 1,
+            "quantity": 2
+        }
+    ]
+
+    results = inventory.decrement_quantities(sale_items)
+
+    # Make sure the inventory update succeeded.
+    assert results[0]["success"] is True
+    assert results[0]["remaining_quantity"] == 6
+
+    # Reload the book and verify the saved quantity.
+    book = inventory.find_book_by_id(1)
+
+    assert book is not None
+    assert book["quantity"] == 6
+
+    print("Test 4 - INVENTORY UPDATE AFTER SALE: PASSED")
 
 def test_delete():
     """
@@ -103,7 +129,7 @@ def test_delete():
 
     assert book is None
 
-    print("Test 4 - DELETE: PASSED")
+    print("Test 5 - DELETE: PASSED")
 
 
 def test_negative_quantity():
@@ -126,7 +152,7 @@ def test_negative_quantity():
 
     assert success is False
 
-    print("Test 5 - NEGATIVE QUANTITY: PASSED")
+    print("Test 6 - NEGATIVE QUANTITY: PASSED")
 
 
 if __name__ == "__main__":
@@ -143,6 +169,7 @@ if __name__ == "__main__":
         test_create()
         test_read()
         test_update()
+        test_inventory_update_after_sale()
         test_delete()
         test_negative_quantity()
 
