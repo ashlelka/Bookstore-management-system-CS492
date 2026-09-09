@@ -1,0 +1,26 @@
+<!--
+Bookstore Management System
+Sprint 1 - T1-007
+Developer: Alexis Silva
+Printed sale receipt after checkout
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt {{ sale_id }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="receipt-page">
+  <div class="receipt-card">
+    <h1>Receipt</h1>
+    <pre id="receiptText">{{ receipt_text }}</pre>
+    <div class="actions">
+      <a class="ghost" href="{{ url_for('index') }}">Back to register</a>
+      <a class="primary" href="{{ url_for('download_receipt') }}" id="downloadReceiptBtn">Download .txt</a>
+    </div>
+  </div>
+</body>
+</html>
