@@ -1,0 +1,29 @@
+[
+    {
+        "user_id": 1,
+        "username": "admin1",
+        "password_hash": "scrypt:32768:8:1$KkoGCDeRh8g9XKnD$a04fcb054064630ae0966e544152a9aea3eae1fbdce5d63a04b6c26720743f4399f6bf69b23f1242e7069202a9db16f4eeb1016ad2bdaaf52df789bcc17ee370",
+        "first_name": "Ashley",
+        "last_name": "Lindamood",
+        "role": "Admin",
+        "active": true
+    },
+    {
+        "user_id": 2,
+        "username": "manager1",
+        "password_hash": "scrypt:32768:8:1$uVtJhFkiIQkqWtMw$211f5b2acd5e9051a6c3919295ab115c7b94ca606599f5224767074de7176f5fcfb8a15c41dd3b2b6552db77605ac41da9b91a7e0f8f1c03022a2fb35703ea45",
+        "first_name": "Jordan",
+        "last_name": "Smith",
+        "role": "Manager",
+        "active": true
+    },
+    {
+        "user_id": 3,
+        "username": "cashier1",
+        "password_hash": "scrypt:32768:8:1$as6zFL4OYtRzAF8s$c69788951e58f8840089e7d10b11e1e9d47037e8741d10141120ef6cb3972d44de7c4ecdbb33974e37ae4e161226a2d140bd50d9cf597d3e568a255fc71ad9f0",
+        "first_name": "Taylor",
+        "last_name": "Brown",
+        "role": "Cashier",
+        "active": true
+    }
+]
