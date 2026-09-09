@@ -173,7 +173,7 @@ if __name__ == "__main__":
         test_delete()
         test_negative_quantity()
 
-        print("\nAll Inventory CRUD tests PASSED.")
+        print("\nAll Inventory tests PASSED.")
 
     finally:
 
