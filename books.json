@@ -11,5 +11,57 @@
         "price": 10.99,
         "quantity": 5,
         "location": "Aisle A - Shelf 1"
+    },
+    {
+        "book_id": 2,
+        "isbn": "9780061120084",
+        "title": "To Kill a Mockingbird",
+        "author": "Harper Lee",
+        "category": "Fiction",
+        "publication_year": "1960",
+        "edition": "1st",
+        "format": "Paperback",
+        "price": 14.99,
+        "quantity": 8,
+        "location": "A2"
+    },
+    {
+        "book_id": 3,
+        "isbn": "9780451524935",
+        "title": "1984",
+        "author": "George Orwell",
+        "category": "Fiction",
+        "publication_year": "1949",
+        "edition": "1st",
+        "format": "Paperback",
+        "price": 11.99,
+        "quantity": 12,
+        "location": "A3"
+    },
+    {
+        "book_id": 4,
+        "isbn": "9780547928227",
+        "title": "The Hobbit",
+        "author": "J.R.R Tolkien",
+        "category": "Fantasy",
+        "publication_year": "1937",
+        "edition": "1st",
+        "format": "Paperback",
+        "price": 15.99,
+        "quantity": 7,
+        "location": "B1"
+    },
+    {
+        "book_id": 5,
+        "isbn": "9780132350884",
+        "title": "Clean Code",
+        "author": "Robert C. Martin",
+        "category": "Technology",
+        "publication_year": "2008",
+        "edition": "1st",
+        "format": "Hardcover",
+        "price": 39.99,
+        "quantity": 5,
+        "location": "C1"
     }
 ]
