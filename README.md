@@ -77,3 +77,13 @@ Employee roles currently include:
 ## Sprint 1
 
 Sprint 1 development includes inventory management, sales functionality, employee account management, security, and supporting development-environment configuration.
+## Repository and Deployment
+
+The development team uses GitHub as the shared code repository for
+version control and team collaboration.
+
+Render is used as the live demonstration deployment platform for the
+Bookstore Management System.
+
+Developers should test changes locally before committing and pushing
+changes to the shared GitHub repository.
