@@ -1,19 +1,7 @@
-"""
-Bookstore Management System
-Sprint 1 - T1-006 / T1-007 / T1-010
-Developer: Alexis Silva
-
-T1-006  Design sales screen, build checkout, calculate sales taxes.
-T1-007  Update inventory after sale, generate receipt, test sales transaction.
-T1-010  Assign roles, modify permissions, lock/disable accounts.
-Employee accounts come from Ashley's T1-009 user_management.py.
-"""
-
-
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-
+from securelogin import auth_bp
 from flask import Flask, redirect, render_template, request, session, url_for, Response
 
 from tax_rates import STATES, STATES_BY_CODE, load_tax_rates, state_rate
@@ -30,11 +18,12 @@ from users import (
     set_locked,
     set_permissions,
 )
-
-APP_DIR = Path(__file__).resolve().parent
-
 app = Flask(__name__)
 app.secret_key = "bookstore-pos-dev"
+
+app.register_blueprint(auth_bp)
+
+APP_DIR = Path(__file__).resolve().parent
 
 products = []
 sale_counter = 1042
@@ -250,11 +239,26 @@ def inject_staff():
 
 @app.before_request
 def require_staff():
-    if request.endpoint in (None, "signin", "static"):
+    # Allow Greg's authentication Blueprint pages to open without
+    # already being signed in.
+    public_endpoints = {
+        None,
+        "static",
+        "signin",          # Keep Alexis's original sign-in route available
+        "auth.login",
+        "auth.register",
+        "auth.dashboard",
+        "auth.logout",
+    }
+
+    if request.endpoint in public_endpoints:
         return
+
     load_users()
+
+    # If the visitor is not signed in, send them to Greg's secure login page.
     if not current_user():
-        return redirect(url_for("signin"))
+        return redirect(url_for("auth.login"))
 
 
 # T1-006: sales screen (catalog + ticket)
@@ -525,8 +529,4 @@ load_users()
 
 
 if __name__ == "__main__":
-    import sys
-    if "--sample" in sys.argv:
-        run_sample_sales()
-    else:
-        app.run(debug=True)
+    app.run(debug=True)

@@ -15,16 +15,28 @@ Sales screen: catalog, ticket, tax by state, checkout
 </head>
 <body>
   <header class="top">
-    <div>
-      <h1>Bookstore Management System</h1>
-      <p class="sub">Point of sale</p>
-    </div>
+
+  <div>
+    <h1>Bookstore Management System</h1>
+    <p class="sub">Point of sale</p>
+  </div>
+
+  <div class="top-actions">
+
     {% if banner %}
     <div class="receipt-banner show" id="receiptBanner">
       Last sale <strong>{{ banner.id }}</strong>
       &middot; {{ banner.total }}
     </div>
     {% endif %}
+
+    <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+      Logout
+    </a>
+
+  </div>
+
+</header>
   </header>
 
   <main class="layout">

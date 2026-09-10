@@ -1,0 +1,14 @@
+{
+  "title": "Bookstore Management System",
+  "sprint": "Sprint 1 - T1-010",
+  "developer": "Alexis Silva",
+  "note": "T1-010 overlays only. Does not replace T1-009 user_management.py or users.json.",
+  "accounts": {
+    "tomatofactory": {
+      "role": "Cashier",
+      "permissions": [
+        "use_pos"
+      ]
+    }
+  }
+}

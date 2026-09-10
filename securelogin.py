@@ -1,86 +1,151 @@
-from flask import Flask, render_template, request, redirect, session, url_for
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Blueprint, render_template, request, redirect, session, url_for
 
-app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # DO NOT USE IN PRODUCTION 
-# app.secret_key = secrets.token_hex(16)  # Use this in production for a secure random key
+# Ashley's employee account system
+from user_management import (
+    authenticate_user,
+    create_employee_account
+)
 
-# Configure SQLAlchemy with SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+# Alexis's roles, permissions, and account locks
+from users import (
+    assign_role,
+    get_user,
+    load_users
+)
 
-# Database configuration
-class User(db.Model):
-    # class variables
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
 
-    # methods for password hashing and checking
-    def set_password(self, password):
-        self.password = generate_password_hash(password)
+# ---------------------------------------------------------
+# AUTHENTICATION BLUEPRINT
+# Greg's secure login/register routes
+# ---------------------------------------------------------
 
-    def check_password(self, password): 
-        return check_password_hash(self.password, password)
+auth_bp = Blueprint(
+    "auth",
+    __name__,
+    template_folder="templates"
+)
 
-# Routes, starting with 'home' route
-@app.route('/')
-def home():
-    if "username" in session:
-        return redirect(url_for('dashboard'))
+
+# ---------------------------------------------------------
+# LOGIN
+# ---------------------------------------------------------
+
+@auth_bp.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        username = request.form["username"]
+        password = request.form["password"]
+
+        # Ashley's password authentication
+        user = authenticate_user(username, password)
+
+        # Load Alexis's role/permission/lock information
+        load_users()
+        merged_user = get_user(username)
+
+        # Reject locked accounts
+        if merged_user and merged_user.get("locked"):
+            return render_template(
+                "index.html",
+                error="This employee account is locked."
+            )
+
+        # Successful authentication
+        if user:
+            session["username"] = user["username"]
+            session.pop("cart", None)
+
+            return redirect(url_for("index"))
+
+        return render_template(
+            "index.html",
+            error="Invalid login credentials. Please try again."
+        )
+
     return render_template("index.html")
 
-# Login route
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    # Collect information from the form in index.html
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        # Check if user already exists in the database 
-        if user and user.check_password(password):
-            session['username'] = username
-            return redirect(url_for('dashboard'))
-    else:
-        return render_template("index.html", error="Invalid login credentials. Please try again.")
 
+# ---------------------------------------------------------
+# REGISTER
+# ---------------------------------------------------------
 
-
-# Registration route
-@app.route("/register", methods=['GET', 'POST'])
+@auth_bp.route("/register", methods=["GET", "POST"])
 def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        # Check if user already exists in the database
-        user = User.query.filter_by(username=username).first()
-        if user:
-            return render_template("index.html", error="Username already exists. Please choose a different username.")
-    else:
-        new_user = User(username=username)
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.commit()
-        session['username'] = username
-        return redirect(url_for('dashboard'))
 
-# Dashboard route
-@app.route('/dashboard')
+    if request.method == "POST":
+
+        username = request.form["username"]
+        password = request.form["password"]
+
+        # Get employee name from Greg's registration form
+        first_name = request.form.get("first_name", "").strip()
+        last_name = request.form.get("last_name", "").strip()
+
+        # New employees start as Cashier.
+        # Alexis's user-management screen can change the role later.
+        role = "Cashier"
+
+        if not first_name or not last_name:
+            return render_template(
+                "index.html",
+                error="First name and last name are required."
+            )
+
+        # Ashley's employee-account creation function
+        success, message = create_employee_account(
+            username,
+            password,
+            first_name,
+            last_name,
+            role
+        )
+
+        if not success:
+            return render_template(
+                "index.html",
+                error=message
+            )
+
+        # Load the new employee into Alexis's permissions system
+        load_users()
+
+        # Give the new employee the default permissions
+        # associated with the Cashier role.
+        assign_role(username, role)
+
+        load_users()
+
+        return redirect(url_for("auth.login"))
+
+    return render_template("index.html")
+
+
+# ---------------------------------------------------------
+# DASHBOARD
+# ---------------------------------------------------------
+
+@auth_bp.route("/dashboard")
 def dashboard():
+
     if "username" in session:
-        return render_template('dashboard.html', username=session['username'])
-    return redirect(url_for('home'))
+        return render_template(
+            "dashboard.html",
+            username=session["username"]
+        )
 
-# Logout route
-@app.route('/logout')
+    return redirect(url_for("auth.login"))
+
+
+# ---------------------------------------------------------
+# LOGOUT
+# ---------------------------------------------------------
+
+@auth_bp.route("/logout")
 def logout():
-    session.pop('username', None)
-    return redirect(url_for('home'))
 
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Create database tables if they don't exist
-    app.run(debug=True)
+    # Clear login, cart, tax selections, and other session values.
+    session.clear()
+
+    return redirect(url_for("auth.login"))

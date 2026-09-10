@@ -25,5 +25,14 @@
         "last_name": "Brown",
         "role": "Cashier",
         "active": true
+    },
+    {
+        "user_id": 4,
+        "username": "tomatofactory",
+        "password_hash": "scrypt:32768:8:1$PCNZJnfyQNpmA75a$889c07cec923de3381d7b028e0bafb3a11300890e7d01a8f0a5dee9844ce42cc2f37bbd5a163fe210f0f318141d7432abbc7a652049c48060f4d0343abc2a5f4",
+        "first_name": "tomato",
+        "last_name": "billy",
+        "role": "Cashier",
+        "active": true
     }
 ]
