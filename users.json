@@ -34,5 +34,14 @@
         "last_name": "billy",
         "role": "Cashier",
         "active": true
+    },
+    {
+        "user_id": 5,
+        "username": "testuser",
+        "password_hash": "scrypt:32768:8:1$pmQzFijzC5Z3IZm0$0c64b85295f85b444cd0f13318622b53e4c6dc4c34d94d3b3aab98d273a73b87b06c77c0bfa6cf3c19dce5506af80226c1b119ffb86dfdfd05651fac6dc22472",
+        "first_name": "Test",
+        "last_name": "User",
+        "role": "Cashier",
+        "active": true
     }
 ]

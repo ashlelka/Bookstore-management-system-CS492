@@ -68,13 +68,33 @@ def _merge(employee, overlay):
 
 
 def load_users():
-    global USERS, USERS_BY_NAME
     overlays = _load_overrides()
-    USERS = []
+
+    # Clear the existing list instead of replacing it.
+    # This keeps sales_app.py connected to the same USERS object.
+    USERS.clear()
+
     for employee in load_employee_file():
+
         key = employee["username"].lower()
-        USERS.append(_merge(employee, overlays.get(key) or overlays.get(employee["username"]) or {}))
-    USERS_BY_NAME = {u["username"].lower(): u for u in USERS}
+
+        USERS.append(
+            _merge(
+                employee,
+                overlays.get(key)
+                or overlays.get(employee["username"])
+                or {}
+            )
+        )
+
+    # Keep the existing dictionary object too.
+    USERS_BY_NAME.clear()
+
+    USERS_BY_NAME.update({
+        u["username"].lower(): u
+        for u in USERS
+    })
+
     return USERS
 
 

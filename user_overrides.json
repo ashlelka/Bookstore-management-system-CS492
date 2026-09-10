@@ -9,6 +9,13 @@
       "permissions": [
         "use_pos"
       ]
+    },
+    "testuser": {
+      "role": "Cashier",
+      "permissions": [
+        "use_pos"
+      ],
+      "locked": false
     }
   }
 }
