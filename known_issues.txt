@@ -1,0 +1,5 @@
+ - sanitize inputs to prevent user without credentials from logging in
+ - same for registration fields
+ - integrate with existing database from github
+ - check if styles work with everyone else's code
+ - 
