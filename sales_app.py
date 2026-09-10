@@ -435,7 +435,7 @@ def user_admin():
         return redirect(url_for("index"))
     load_users()
     return render_template(
-        "users.html",
+        "user.html",
         users=USERS,
         roles=list(ROLES.keys()),
         permission_defs=PERMISSIONS,

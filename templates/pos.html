@@ -16,18 +16,38 @@ Sales screen: catalog, ticket, tax by state, checkout
 <body>
   <header class="top">
 
+  <!-- Alexis's original title -->
   <div>
     <h1>Bookstore Management System</h1>
     <p class="sub">Point of sale</p>
   </div>
 
+  <!-- Alexis's original last-sale banner -->
+  {% if banner %}
+  <div class="receipt-banner show" id="receiptBanner">
+    Last sale <strong>{{ banner.id }}</strong>
+    &middot; {{ banner.total }}
+  </div>
+  {% endif %}
+
+  <!-- Logged-in employee controls -->
   <div class="top-actions">
 
-    {% if banner %}
-    <div class="receipt-banner show" id="receiptBanner">
-      Last sale <strong>{{ banner.id }}</strong>
-      &middot; {{ banner.total }}
+    {% if current_user %}
+    <div class="employee-info">
+      <strong>
+        {{ current_user.first_name }} {{ current_user.last_name }}
+      </strong>
+      <span>
+        {{ current_user.role }}
+      </span>
     </div>
+    {% endif %}
+
+    {% if can_manage_users %}
+    <a href="{{ url_for('user_admin') }}" class="manage-btn">
+      Manage Employees
+    </a>
     {% endif %}
 
     <a href="{{ url_for('auth.logout') }}" class="logout-btn">
@@ -37,6 +57,8 @@ Sales screen: catalog, ticket, tax by state, checkout
   </div>
 
 </header>
+
+
   </header>
 
   <main class="layout">
