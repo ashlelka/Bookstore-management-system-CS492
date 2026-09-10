@@ -63,5 +63,83 @@
         "price": 39.99,
         "quantity": 5,
         "location": "C1"
+    },
+    {
+        "book_id": 6,
+        "isbn": "9780955907807",
+        "title": "Betrayal at Falador",
+        "author": "T.S. Church",
+        "category": "fantasy",
+        "publication_year": "2008",
+        "edition": "",
+        "format": "Paperback",
+        "price": 15.0,
+        "quantity": 25,
+        "location": "F1"
+    },
+    {
+        "book_id": 7,
+        "isbn": "9781848567276",
+        "title": "Return to Canifis",
+        "author": "T.S. Church",
+        "category": "Fantasy",
+        "publication_year": "2011",
+        "edition": "",
+        "format": "Paperback",
+        "price": 15.0,
+        "quantity": 25,
+        "location": "F2"
+    },
+    {
+        "book_id": 8,
+        "isbn": "9780857687579",
+        "title": "Legacy of Blood",
+        "author": "T.S. Church",
+        "category": "Fantasy",
+        "publication_year": "2012",
+        "edition": "",
+        "format": "Paperback",
+        "price": 15.0,
+        "quantity": 25,
+        "location": "F3"
+    },
+    {
+        "book_id": 9,
+        "isbn": "9781803365213",
+        "title": "The Gift of Guthix",
+        "author": "Erin M. Evans",
+        "category": "Fantasy",
+        "publication_year": "2012",
+        "edition": "",
+        "format": "Paperback",
+        "price": 15.0,
+        "quantity": 25,
+        "location": "F4"
+    },
+    {
+        "book_id": 10,
+        "isbn": "9781803366067",
+        "title": "Shadows of Amascut",
+        "author": "Erin M. Evans",
+        "category": "Fantasy",
+        "publication_year": "2025",
+        "edition": "",
+        "format": "Paperback",
+        "price": 15.0,
+        "quantity": 25,
+        "location": "F5"
+    },
+    {
+        "book_id": 11,
+        "isbn": "9781803366050",
+        "title": "The Fall of Hallowvale",
+        "author": "Robbie MacNiven",
+        "category": "Fantasy",
+        "publication_year": "2025",
+        "edition": "",
+        "format": "Paperback",
+        "price": 15.0,
+        "quantity": 25,
+        "location": "F6"
     }
 ]
