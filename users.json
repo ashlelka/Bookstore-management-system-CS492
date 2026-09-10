@@ -43,5 +43,14 @@
         "last_name": "User",
         "role": "Cashier",
         "active": true
+    },
+    {
+        "user_id": 6,
+        "username": "testcashier",
+        "password_hash": "scrypt:32768:8:1$QRGlfCqvTvdh0BB9$640816ae4d00e5742e20ec2936d8dfd6b75553838a1f98a3f66fe179b589128a43ec2293f4e43da95d059a7177e2f69985209b1aefad2f3c0cb5538e7b84dca3",
+        "first_name": "Test",
+        "last_name": "Employee",
+        "role": "Cashier",
+        "active": true
     }
 ]

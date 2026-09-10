@@ -16,6 +16,12 @@
         "use_pos"
       ],
       "locked": false
+    },
+    "testcashier": {
+      "role": "Cashier",
+      "permissions": [
+        "use_pos"
+      ]
     }
   }
 }

@@ -236,13 +236,31 @@ def decrement_quantities(sale_items):
     results = []
 
     for sale_item in sale_items:
+# Accept either Ashley's inventory field names
+        # or Alexis's POS field names.
+        book_id = sale_item.get(
+            "book_id",
+            sale_item.get("productId")
+)
 
-        book_id = sale_item.get("book_id")
-        quantity_sold = sale_item.get("quantity", 0)
+        quantity_sold = sale_item.get(
+            "quantity",
+            sale_item.get("qty", 0)
+)
+        try:
+            book_id = int(book_id)
+            quantity_sold = int(quantity_sold)
+        except (ValueError, TypeError):
+            results.append({
+            "book_id": book_id,
+            "success": False,
+            "message": "Book ID and quantity must be integers."
+        })
+        continue
 
-        book_found = False
+    book_found = False
 
-        for book in books:
+    for book in books:
 
             if book["book_id"] == book_id:
                 book_found = True
@@ -277,7 +295,7 @@ def decrement_quantities(sale_items):
 
                 break
 
-        if not book_found:
+    if not book_found:
             results.append({
                 "book_id": book_id,
                 "success": False,
