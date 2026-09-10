@@ -1,0 +1,90 @@
+<!--
+Bookstore Management System
+Sprint 1 - T1-010
+Developer: Alexis Silva
+Assign roles, modify permissions, lock or disable accounts
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User management</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>User management</h1>
+      <p class="sub">Sprint 1 — T1-010<br>Developer: Alexis Silva</p>
+    </div>
+    <nav class="staff-nav">
+      <a class="ghost" href="{{ url_for('index') }}">Back to register</a>
+    </nav>
+  </header>
+
+  <main class="users-wrap">
+    {% if notice %}
+    <p class="receipt-banner show">{{ notice }}</p>
+    {% endif %}
+
+    <table class="users">
+      <thead>
+        <tr>
+          <th>Staff</th>
+          <th>Role</th>
+          <th>Permissions</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr class="{% if u.locked %}is-locked{% endif %}">
+          <td>
+            <strong>{{ u.first_name }} {{ u.last_name }}</strong>
+            <div class="lunit">{{ u.username }} · ID {{ u.user_id }}</div>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('set_role', username=u.username) }}">
+              <select name="role">
+                {% for role in roles %}
+                <option value="{{ role }}" {% if u.role == role %}selected{% endif %}>{{ role }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit">Assign role</button>
+            </form>
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('set_user_permissions', username=u.username) }}">
+              {% for p in permission_defs %}
+              <label class="perm">
+                <input type="checkbox" name="permissions" value="{{ p.id }}"
+                  {% if p.id in (u.permissions or []) %}checked{% endif %}>
+                {{ p.label }}
+              </label>
+              {% endfor %}
+              <button type="submit">Save permissions</button>
+            </form>
+          </td>
+          <td>
+            {% if u.locked %}
+            <span class="stock low">Locked / disabled</span>
+            <form method="post" action="{{ url_for('unlock_user', username=u.username) }}">
+              <button type="submit">Unlock</button>
+            </form>
+            {% else %}
+            <span class="stock">Active</span>
+            <form method="post" action="{{ url_for('lock_user', username=u.username) }}">
+              <button class="remove" type="submit">Lock account</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="tax-note">Assigning a role resets permissions to that role’s defaults. Changes are saved in user_overrides.json and do not replace Ashley’s T1-009 files. A locked account has no permissions until it is unlocked.</p>
+  </main>
+</body>
+</html>

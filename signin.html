@@ -1,0 +1,37 @@
+<!--
+Bookstore Management System
+Sprint 1 - T1-010
+Developer: Alexis Silva
+Staff selector so roles and locked accounts can be demonstrated
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — Bookstore</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="receipt-page">
+  <div class="receipt-card">
+    <h1>Staff sign-in</h1>
+    <p class="sub">Sprint 1 — T1-010<br>Developer: Alexis Silva<br>Uses Ashley’s T1-009 employee accounts. Sign in with username and password.</p>
+    {% if error %}
+    <p class="stock low">{{ error }}</p>
+    {% endif %}
+    <form method="post" action="{{ url_for('signin') }}" class="signin-form">
+      <label for="username">Staff member</label>
+      <select id="username" name="username" required>
+        <option value="">Select staff</option>
+        {% for u in users %}
+        <option value="{{ u.username }}">{{ u.first_name }} {{ u.last_name }} ({{ u.role }}{% if u.locked %}, locked{% endif %})</option>
+        {% endfor %}
+      </select>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required>
+      <button class="primary" type="submit">Continue</button>
+    </form>
+  </div>
+</body>
+</html>

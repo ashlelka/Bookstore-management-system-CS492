@@ -1,8 +1,12 @@
 """
 Bookstore Management System
-Sprint 1 - T1-006
-Sprint 1 - T1-007
+Sprint 1 - T1-006 / T1-007 / T1-010
 Developer: Alexis Silva
+
+T1-006  Design sales screen, build checkout, calculate sales taxes.
+T1-007  Update inventory after sale, generate receipt, test sales transaction.
+T1-010  Assign roles, modify permissions, lock/disable accounts.
+Employee accounts come from Ashley's T1-009 user_management.py.
 """
 
 import json
@@ -14,6 +18,18 @@ from flask import Flask, redirect, render_template, request, session, url_for, R
 
 from tax_rates import STATES, STATES_BY_CODE, load_tax_rates, state_rate
 from inventory import decrement_quantities, load_books, save_books
+from user_management import authenticate_user
+from users import (
+    PERMISSIONS,
+    ROLES,
+    USERS,
+    assign_role,
+    get_user,
+    has_permission,
+    load_users,
+    set_locked,
+    set_permissions,
+)
 
 APP_DIR = Path(__file__).resolve().parent
 
@@ -88,7 +104,7 @@ def item_count():
     return sum(int(qty) for qty in cart().values())
 
 
-# T1-006: sales tax (state lookup in tax_rates.json; rate is not typed in)
+# T1-006: sales tax (state lookup in tax_rates.json)
 
 def calc_totals(tax_rate):
     subtotal = exempt_amt = taxable_amt = 0
@@ -148,7 +164,7 @@ def generate_receipt(sale):
 
 
 def update_inventory(sale_items):
-    # T1-007: after checkout, decrement stock through Ashley's inventory module (T1-003).
+    # T1-007: after checkout, decrement stock through inventory module (T1-003).
     results = decrement_quantities(sale_items)
     load_products()
     return results
@@ -208,6 +224,39 @@ def redirect_home():
     return redirect(url_for("index", cat=cat))
 
 
+# T1-010: current staff member
+
+def current_user():
+    return get_user(session.get("username"))
+
+
+def can_use_pos():
+    return has_permission(current_user(), "use_pos")
+
+
+def can_manage_users():
+    return has_permission(current_user(), "manage_users")
+
+
+@app.context_processor
+def inject_staff():
+    user = current_user()
+    return {
+        "current_user": user,
+        "can_use_pos": can_use_pos(),
+        "can_manage_users": can_manage_users(),
+    }
+
+
+@app.before_request
+def require_staff():
+    if request.endpoint in (None, "signin", "static"):
+        return
+    load_users()
+    if not current_user():
+        return redirect(url_for("signin"))
+
+
 # T1-006: sales screen (catalog + ticket)
 
 @app.route("/")
@@ -239,12 +288,14 @@ def index():
         format_rate=format_rate,
         money=money,
         banner=session.get("banner"),
-        can_checkout=bool(cart_lines()) and bool(selected_state()),
+        can_checkout=bool(cart_lines()) and bool(selected_state()) and can_use_pos(),
     )
 
 
 @app.post("/add/<pid>")
 def add(pid):
+    if not can_use_pos():
+        return redirect_home()
     product = product_by_id(pid)
     available = stock_left(product) if product else 0
     if product and (available is None or available > 0):
@@ -257,6 +308,8 @@ def add(pid):
 
 @app.post("/qty/<pid>/<int:delta>")
 def change_qty(pid, delta):
+    if not can_use_pos():
+        return redirect_home()
     product = product_by_id(pid)
     if not product or str(pid) not in cart():
         return redirect_home()
@@ -306,6 +359,8 @@ def set_tax():
 
 @app.post("/checkout")
 def checkout():
+    if not can_use_pos():
+        return redirect_home()
     sale = build_sale()
     if not sale:
         return redirect_home()
@@ -342,7 +397,84 @@ def download_receipt():
     )
 
 
-# T1-007: test a sample sale (python app.py --sample)
+# T1-010: sign in, roles, permissions, lock/disable
+
+@app.route("/signin", methods=["GET", "POST"])
+def signin():
+    load_users()
+    error = None
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password") or ""
+        user = authenticate_user(username, password)
+        merged = get_user(username)
+        if merged and merged.get("locked"):
+            error = merged["name"] + " is locked and cannot sign in."
+        elif not user:
+            error = "Username or password is incorrect."
+        else:
+            session["username"] = user["username"]
+            session.pop("cart", None)
+            return redirect(url_for("index"))
+    return render_template("signin.html", users=USERS, error=error)
+
+
+@app.post("/signout")
+def signout():
+    session.clear()
+    return redirect(url_for("signin"))
+
+
+@app.get("/users")
+def user_admin():
+    if not can_manage_users():
+        return redirect(url_for("index"))
+    load_users()
+    return render_template(
+        "users.html",
+        users=USERS,
+        roles=list(ROLES.keys()),
+        permission_defs=PERMISSIONS,
+        notice=request.args.get("notice"),
+    )
+
+
+@app.post("/users/<username>/role")
+def set_role(username):
+    if not can_manage_users():
+        return redirect(url_for("index"))
+    assign_role(username, request.form.get("role"))
+    return redirect(url_for("user_admin", notice="Role updated for " + username + "."))
+
+
+@app.post("/users/<username>/permissions")
+def set_user_permissions(username):
+    if not can_manage_users():
+        return redirect(url_for("index"))
+    set_permissions(username, request.form.getlist("permissions"))
+    return redirect(url_for("user_admin", notice="Permissions updated for " + username + "."))
+
+
+@app.post("/users/<username>/lock")
+def lock_user(username):
+    if not can_manage_users():
+        return redirect(url_for("index"))
+    set_locked(username, True)
+    if session.get("username") == username:
+        session.clear()
+        return redirect(url_for("signin"))
+    return redirect(url_for("user_admin", notice=username + " is locked."))
+
+
+@app.post("/users/<username>/unlock")
+def unlock_user(username):
+    if not can_manage_users():
+        return redirect(url_for("index"))
+    set_locked(username, False)
+    return redirect(url_for("user_admin", notice=username + " is unlocked."))
+
+
+# T1-007: test a sample sale
 
 def run_sample_sales():
     load_products()
@@ -389,6 +521,7 @@ def run_sample_sales():
 
 load_products()
 load_tax_rates()
+load_users()
 
 
 if __name__ == "__main__":

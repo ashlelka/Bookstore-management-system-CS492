@@ -1,0 +1,164 @@
+<!--
+Bookstore Management System
+Sprint 1 - T1-006 / T1-010
+Developer: Alexis Silva
+Sales screen: catalog, ticket, tax by state, checkout
+Staff bar / Users link: T1-010 roles and lock
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookstore POS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Bookstore Management System</h1>
+      <p class="sub">Point of sale</p>
+      {% if current_user and not can_use_pos %}
+      <p class="stock low">This account cannot use the register. An admin can change roles on the Users page.</p>
+      {% endif %}
+    </div>
+    {% if banner %}
+    <div class="receipt-banner show" id="receiptBanner">
+      Last sale <strong>{{ banner.id }}</strong>
+      &middot; {{ banner.total }}
+    </div>
+    {% endif %}
+    {# T1-010: signed-in staff, Users admin link, sign out #}
+    {% if current_user %}
+    <nav class="staff-nav">
+      <span>{{ current_user.first_name }} {{ current_user.last_name }} · {{ current_user.role }}</span>
+      {% if can_manage_users %}
+      <a class="ghost" href="{{ url_for('user_admin') }}">Users</a>
+      {% endif %}
+      <form method="post" action="{{ url_for('signout') }}">
+        <button class="ghost" type="submit">Sign out</button>
+      </form>
+    </nav>
+    {% endif %}
+  </header>
+
+  <main class="layout">
+    <section class="catalog">
+      <nav class="categories" id="categories">
+        {% for c in categories %}
+        <a class="cat-btn{% if c == active %} active{% endif %}" href="{{ url_for('index', cat=c) }}">{{ c }}</a>
+        {% endfor %}
+      </nav>
+
+      <div class="grid" id="productGrid">
+        {% if not tiles %}
+          <div class="empty">No products in this category.</div>
+        {% endif %}
+        {% for p in tiles %}
+          <form method="post" action="{{ url_for('add', pid=p.id) }}">
+            <input type="hidden" name="cat" value="{{ active }}">
+            <button class="tile" type="submit" {% if p.out_of_stock or not can_use_pos %}disabled{% endif %}>
+              <div class="name">{{ p.name }}</div>
+              {% if p.author %}<div class="author">{{ p.author }}</div>{% endif %}
+              <div class="meta">
+                <span class="price">{{ money(p.price) }}</span>
+                {% if p.exempt %}<span class="exempt">Tax-exempt</span>{% endif %}
+              </div>
+              {% if p.available is not none %}
+              <div class="stock{% if p.low %} low{% endif %}">
+                {% if p.out_of_stock %}Out of stock{% else %}{{ p.available }} in stock{% endif %}
+              </div>
+              {% endif %}
+            </button>
+          </form>
+        {% endfor %}
+      </div>
+    </section>
+
+    <aside class="ticket">
+      <div class="ticket-head">
+        <h2>Ticket</h2>
+        <span id="itemCount">{{ item_count }} {{ 'item' if item_count == 1 else 'items' }}</span>
+      </div>
+
+      <div class="lines" id="lines">
+        {% if not lines %}
+          <div class="empty">No items yet. Add something from the left.</div>
+        {% else %}
+          {% for line in lines %}
+          <div class="line">
+            <div>
+              <div class="lname">{{ line.product.name }}</div>
+              <div class="lunit">{{ money(line.product.price) }} each</div>
+            </div>
+            <div class="line-controls">
+              <div class="qty">
+                <form method="post" action="{{ url_for('change_qty', pid=line.id, delta=0) }}">
+                  <input type="hidden" name="cat" value="{{ active }}">
+                  <button type="submit" aria-label="Decrease quantity">&minus;</button>
+                </form>
+                <span>{{ line.qty }}</span>
+                <form method="post" action="{{ url_for('change_qty', pid=line.id, delta=1) }}">
+                  <input type="hidden" name="cat" value="{{ active }}">
+                  <button type="submit" aria-label="Increase quantity">&plus;</button>
+                </form>
+              </div>
+              <div class="lline-total">{{ money(line.line_total) }}</div>
+              <form method="post" action="{{ url_for('remove_item', pid=line.id) }}">
+                <input type="hidden" name="cat" value="{{ active }}">
+                <button class="remove" type="submit">Remove</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <form class="tax-row" method="post" action="{{ url_for('set_tax') }}">
+        <input type="hidden" name="cat" value="{{ active }}">
+        <label for="taxState">Sale location</label>
+        <select id="taxState" name="state" required>
+          <option value="" {% if not selected_state %}selected{% endif %}>Select a state</option>
+          {% for s in states %}
+          <option value="{{ s.code }}" {% if selected_state and selected_state.code == s.code %}selected{% endif %}>
+            {{ s.name }}
+          </option>
+          {% endfor %}
+        </select>
+        <button type="submit">Set</button>
+        {% if selected_state %}
+        <p class="tax-note">
+          {{ selected_state.name }} statewide rate is locked at {{ format_rate(selected_state.rate) }}%.
+          Local city or county tax is not included.
+        </p>
+        {% else %}
+        <p class="tax-note">Choose the state for this sale. The tax rate cannot be typed in.</p>
+        {% endif %}
+      </form>
+
+      <div class="totals">
+        <div><span>Subtotal</span><strong id="subtotal">{{ money(totals.subtotal) }}</strong></div>
+        <div><span>Tax-exempt</span><strong id="exemptAmt">{{ money(totals.exemptAmt) }}</strong></div>
+        <div>
+          <span>
+            {% if selected_state %}{{ selected_state.code }} tax ({{ format_rate(selected_state.rate) }}%){% else %}Sales tax{% endif %}
+          </span>
+          <strong id="taxAmt">{{ money(totals.tax) }}</strong>
+        </div>
+        <div class="grand"><span>Total</span><strong id="grandTotal">{{ money(totals.total) }}</strong></div>
+      </div>
+
+      <div class="actions">
+        <form method="post" action="{{ url_for('clear_cart') }}">
+          <input type="hidden" name="cat" value="{{ active }}">
+          <button type="submit" class="ghost" id="clearBtn">Clear</button>
+        </form>
+        <form method="post" action="{{ url_for('checkout') }}">
+          <button type="submit" class="primary" id="checkoutBtn" {% if not can_checkout %}disabled{% endif %}>Checkout</button>
+        </form>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>
