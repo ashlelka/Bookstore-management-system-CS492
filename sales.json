@@ -1,5 +1,54 @@
-
 {
   "title": "Bookstore Management System",
-  "sales": []
+  "sales": [
+    {
+      "sale_id": "SALE-1042",
+      "timestamp": "2026-09-10T22:42:45.814872",
+      "cashier_user_id": 1,
+      "cashier_username": "admin1",
+      "cashier_name": "Ashley Lindamood",
+      "tax_state": "AK",
+      "tax_rate": 0.0,
+      "subtotal": 37.97,
+      "tax": 0.0,
+      "total": 37.97,
+      "items": [
+        {
+          "book_id": "1",
+          "isbn": "9780743273565",
+          "title": "The Great Gatsby",
+          "qty": 1,
+          "unit_price": 10.99,
+          "line_total": 10.99,
+          "exempt": false
+        },
+        {
+          "book_id": "2",
+          "isbn": "9780061120084",
+          "title": "To Kill a Mockingbird",
+          "qty": 1,
+          "unit_price": 14.99,
+          "line_total": 14.99,
+          "exempt": false
+        },
+        {
+          "book_id": "3",
+          "isbn": "9780451524935",
+          "title": "1984",
+          "qty": 1,
+          "unit_price": 11.99,
+          "line_total": 11.99,
+          "exempt": false
+        }
+      ],
+      "inventory_results": [
+        {
+          "book_id": 3,
+          "success": true,
+          "message": "Inventory updated successfully.",
+          "remaining_quantity": 11
+        }
+      ]
+    }
+  ]
 }

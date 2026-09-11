@@ -7,6 +7,10 @@ from flask import Flask, redirect, render_template, request, session, url_for, R
 from tax_rates import STATES, STATES_BY_CODE, load_tax_rates, state_rate
 from inventory import decrement_quantities, load_books, save_books
 from user_management import authenticate_user
+from database import (
+    record_sale,
+    connection_status
+)
 from users import (
     PERMISSIONS,
     ROLES,
@@ -365,13 +369,29 @@ def set_tax():
 def checkout():
     if not can_use_pos():
         return redirect_home()
+
     sale = build_sale()
+
     if not sale:
         return redirect_home()
+
+    # Save the completed sale to sales.json.
+    cashier = current_user()
+
+    record_sale(
+        sale,
+        cashier
+    )
+
     session["cart"] = {}
     session["last_receipt"] = sale["receipt"]
     session["last_sale_id"] = sale["id"]
-    session["banner"] = {"id": sale["id"], "total": money(sale["total"])}
+
+    session["banner"] = {
+        "id": sale["id"],
+        "total": money(sale["total"])
+    }
+
     return redirect(url_for("receipt"))
 
 
@@ -476,7 +496,20 @@ def unlock_user(username):
         return redirect(url_for("index"))
     set_locked(username, False)
     return redirect(url_for("user_admin", notice=username + " is unlocked."))
+#R route for database page
+@app.get("/database")
+def database_page():
 
+    if not can_manage_users():
+        return redirect(url_for("index"))
+
+    status = connection_status()
+
+    return render_template(
+        "database.html",
+        status=status,
+        money=money
+    )
 
 # T1-007: test a sample sale
 
