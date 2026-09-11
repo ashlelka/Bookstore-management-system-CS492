@@ -1,0 +1,168 @@
+<!--
+Bookstore Management System
+Sprint 1 - NF-003
+Developer: Alexis Silva
+Initial database interconnections (JSON stores linked by ID)
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database connections</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>Database interconnections</h1>
+      <p class="sub">Sprint 1 — NF-003<br>Developer: Alexis Silva</p>
+    </div>
+    <nav class="staff-nav">
+      <a class="ghost" href="{{ url_for('index') }}">Back to register</a>
+    </nav>
+  </header>
+
+  <main class="users-wrap">
+    <p class="tax-note">Sprint 1 uses JSON files as the database. A sale stores foreign keys into inventory, employees, and tax rates. Those owner modules are not replaced.</p>
+
+    <section class="er-map" aria-label="How the stores connect">
+      <div class="er-box">
+        <h3>Employees</h3>
+        <p class="lunit">users.json · user_id</p>
+      </div>
+      <div class="er-box">
+        <h3>Inventory</h3>
+        <p class="lunit">books.json · book_id</p>
+      </div>
+      <div class="er-box">
+        <h3>Tax rates</h3>
+        <p class="lunit">tax_rates.json · code</p>
+      </div>
+      <div class="er-box er-box-join">
+        <h3>Sales (join table)</h3>
+        <p class="lunit">sales.json · cashier_user_id, book_id, tax_state</p>
+      </div>
+    </section>
+
+    <h2>Stores</h2>
+    <table class="users">
+      <thead>
+        <tr>
+          <th>Store</th>
+          <th>File</th>
+          <th>Key</th>
+          <th>Rows</th>
+          <th>Status</th>
+          <th>Owner</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for store in status.stores %}
+        <tr>
+          <td><strong>{{ store.name }}</strong></td>
+          <td>{{ store.file }}</td>
+          <td>{{ store.key }}</td>
+          <td>{{ store.count }}</td>
+          <td>
+            {% if store.ok %}
+            <span class="badge-ok">connected</span>
+            {% else %}
+            <span class="badge-bad">missing</span>
+            {% endif %}
+          </td>
+          <td>{{ store.owner }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Foreign keys</h2>
+    <table class="users">
+      <thead>
+        <tr>
+          <th>From</th>
+          <th>To</th>
+          <th>What it links</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rel in status.relationships %}
+        <tr>
+          <td>{{ rel.from_store }}.{{ rel.from_key }}</td>
+          <td>{{ rel.to_store }}.{{ rel.to_key }}</td>
+          <td>{{ rel.note }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <p class="sub" style="margin-top:1rem;">
+      {{ status.book_count }} books ·
+      {{ status.employee_count }} employees ·
+      {{ status.tax_state_count }} tax states ·
+      {{ status.sale_count }} sales ·
+      {% if status.integrity.total %}
+        {{ status.integrity.linked }} of {{ status.integrity.total }} sales fully linked
+      {% else %}
+        no sale rows yet
+      {% endif %}
+    </p>
+
+    <h2>Recent sales (joined)</h2>
+    {% if not status.sales %}
+    <p class="empty">No sales recorded yet. Complete a checkout to write a row that links cashier, books, and tax state.</p>
+    {% else %}
+    <table class="users">
+      <thead>
+        <tr>
+          <th>Sale</th>
+          <th>Cashier (users.json)</th>
+          <th>Books (books.json)</th>
+          <th>Tax (tax_rates.json)</th>
+          <th>Total</th>
+          <th>Links</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sale in status.sales %}
+        <tr>
+          <td>
+            <strong>{{ sale.sale_id }}</strong>
+            <div class="lunit">{{ sale.timestamp }}</div>
+          </td>
+          <td>
+            {{ sale.cashier_name or sale.cashier_username }}
+            <div class="lunit">user_id {{ sale.cashier_user_id }}</div>
+            {% if not sale.cashier_ok %}<div class="badge-bad">unresolved</div>{% endif %}
+          </td>
+          <td>
+            {% for item in sale.lines %}
+            <div>
+              {{ item.qty }} × {{ item.title }}
+              <span class="lunit">(book_id {{ item.book_id }})</span>
+              {% if not item.in_inventory %}<span class="badge-bad">missing</span>{% endif %}
+            </div>
+            {% endfor %}
+          </td>
+          <td>
+            {{ sale.tax_state }} @ {{ sale.tax_rate }}%
+            {% if not sale.tax_ok %}<div class="badge-bad">unresolved</div>{% endif %}
+          </td>
+          <td>{{ money(sale.total) }}</td>
+          <td>
+            {% if sale.links_ok %}
+            <span class="badge-ok">ok</span>
+            {% else %}
+            <span class="badge-bad">broken</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </main>
+</body>
+</html>
