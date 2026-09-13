@@ -5,7 +5,13 @@ from securelogin import auth_bp
 from flask import Flask, redirect, render_template, request, session, url_for, Response
 
 from tax_rates import STATES, STATES_BY_CODE, load_tax_rates, state_rate
-from inventory import decrement_quantities, load_books, save_books
+from inventory import (
+    decrement_quantities,
+    load_books,
+    save_books,
+    get_reorder_threshold,
+    get_low_stock_books
+)
 from user_management import authenticate_user
 from database import (
     record_sale,
@@ -47,6 +53,21 @@ def as_product(book):
         "exempt": bool(book.get("exempt")),
     }
 
+def as_product(book):
+    """Map inventory records onto the POS tile/cart shape."""
+
+    return {
+        "id": str(book["book_id"]),
+        "name": book["title"],
+        "author": book.get("author", ""),
+        "isbn": book.get("isbn", ""),
+        "location": book.get("location", ""),
+        "price": book["price"],
+        "category": book.get("category") or "Uncategorized",
+        "stock": book.get("quantity"),
+        "reorder_threshold": get_reorder_threshold(book),
+        "exempt": bool(book.get("exempt")),
+    }
 
 def load_products():
     global products
@@ -279,9 +300,10 @@ def index():
             **product,
             "available": available,
             "out_of_stock": available is not None and available <= 0,
-            "low": available is not None and 0 < available <= 3,
-        })
+            "low": available is not None and 0 < available <= product["reorder_threshold"],
+    })
     totals = calc_totals(tax_rate())
+    low_stock_books = get_low_stock_books()
     return render_template(
         "pos.html",
         categories=categories(),
@@ -296,6 +318,7 @@ def index():
         format_rate=format_rate,
         money=money,
         banner=session.get("banner"),
+        low_stock_books=low_stock_books,
         can_checkout=bool(cart_lines()) and bool(selected_state()) and can_use_pos(),
     )
 

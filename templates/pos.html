@@ -60,7 +60,41 @@ Sales screen: catalog, ticket, tax by state, checkout
 
 
   </header>
+</header>
 
+<!-- T1-004 Low Stock Alert -->
+{% if low_stock_books %}
+<section class="low-stock-alert">
+
+  <div class="low-stock-icon">
+    &#9888;
+  </div>
+
+  <div class="low-stock-heading">
+    <h2>Low Stock Alert</h2>
+  </div>
+
+  <div class="low-stock-summary">
+    {{ low_stock_books|length }}
+    item(s) have reached their reorder threshold.
+  </div>
+
+  <div class="low-stock-items">
+    {% for book in low_stock_books %}
+    <span class="low-stock-item">
+      <strong>{{ book.title }}</strong>
+      <span class="low-stock-count">
+        ({{ book.quantity }}/{{ book.reorder_threshold | default(5) }})
+      </span>
+    </span>
+    {% endfor %}
+  </div>
+
+</section>
+{% endif %}
+
+
+<!-- POS layout starts AFTER the notification -->
   <main class="layout">
     <section class="catalog">
       <nav class="categories" id="categories">
@@ -85,9 +119,20 @@ Sales screen: catalog, ticket, tax by state, checkout
               </div>
               {% if p.available is not none %}
               <div class="stock{% if p.low %} low{% endif %}">
-                {% if p.out_of_stock %}Out of stock{% else %}{{ p.available }} in stock{% endif %}
-              </div>
-              {% endif %}
+
+                {% if p.out_of_stock %}
+                    Out of stock
+
+                {% elif p.low %}
+              <span class="stock-warning">&#9888;</span>
+              {{ p.available }} in stock (Low)
+
+                {% else %}
+              {{ p.available }} in stock
+                {% endif %}
+
+            </div>
+            {% endif %}
             </button>
           </form>
         {% endfor %}

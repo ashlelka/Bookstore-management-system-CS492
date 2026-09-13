@@ -23,7 +23,7 @@
         "edition": "1st",
         "format": "Paperback",
         "price": 14.99,
-        "quantity": 8,
+        "quantity": 2,
         "reorder_threshold": 5,
         "location": "A2"
     },

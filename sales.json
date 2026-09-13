@@ -49,6 +49,76 @@
           "remaining_quantity": 11
         }
       ]
+    },
+    {
+      "sale_id": "SALE-1042",
+      "timestamp": "2026-09-12T19:10:05.135850",
+      "cashier_user_id": 1,
+      "cashier_username": "admin1",
+      "cashier_name": "Ashley Lindamood",
+      "tax_state": "AZ",
+      "tax_rate": 5.6,
+      "subtotal": 89.94,
+      "tax": 5.036639999999999,
+      "total": 94.97664,
+      "items": [
+        {
+          "book_id": "2",
+          "isbn": "9780061120084",
+          "title": "To Kill a Mockingbird",
+          "qty": 6,
+          "unit_price": 14.99,
+          "line_total": 89.94,
+          "exempt": false
+        }
+      ],
+      "inventory_results": [
+        {
+          "book_id": 2,
+          "success": true,
+          "message": "Inventory updated successfully.",
+          "remaining_quantity": 2,
+          "reorder_threshold": 5,
+          "stock_status": "Low Stock",
+          "low_stock": true,
+          "notification": "LOW STOCK ALERT: To Kill a Mockingbird has 2 remaining. Reorder threshold: 5."
+        }
+      ]
+    },
+    {
+      "sale_id": "SALE-1042",
+      "timestamp": "2026-09-12T19:41:23.807694",
+      "cashier_user_id": 6,
+      "cashier_username": "testcashier",
+      "cashier_name": "Test Employee",
+      "tax_state": "CO",
+      "tax_rate": 2.9,
+      "subtotal": 10.99,
+      "tax": 0.31871,
+      "total": 11.30871,
+      "items": [
+        {
+          "book_id": "1",
+          "isbn": "9780743273565",
+          "title": "The Great Gatsby",
+          "qty": 1,
+          "unit_price": 10.99,
+          "line_total": 10.99,
+          "exempt": false
+        }
+      ],
+      "inventory_results": [
+        {
+          "book_id": 1,
+          "success": true,
+          "message": "Inventory updated successfully.",
+          "remaining_quantity": 3,
+          "reorder_threshold": 5,
+          "stock_status": "Low Stock",
+          "low_stock": true,
+          "notification": "LOW STOCK ALERT: The Great Gatsby has 3 remaining. Reorder threshold: 5."
+        }
+      ]
     }
   ]
 }
