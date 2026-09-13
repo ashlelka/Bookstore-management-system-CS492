@@ -1,0 +1,260 @@
+"""
+Bookstore Management System
+Sprint 1 - Authentication and Session Testing
+
+Tests:
+1. Unauthenticated users are redirected to login.
+2. Invalid credentials are rejected.
+3. Valid credentials successfully authenticate.
+4. Authenticated username is stored in session.
+5. Session is marked permanent.
+6. Logged-in employee can access the POS.
+7. Inactivity timeout clears expired session.
+8. Logged-out users cannot access protected POS pages.
+9. Logout clears the authenticated session.
+"""
+
+from datetime import datetime, timedelta, timezone
+
+from sales_app import app
+
+
+TEST_USERNAME = "testcashier"
+TEST_PASSWORD = "Password123"
+
+
+def print_result(passed, message):
+    """
+    Print PASS or FAIL for each authentication test.
+    """
+
+    if passed:
+        print(f"PASS: {message}")
+    else:
+        print(f"FAIL: {message}")
+
+
+def main():
+
+    print("\n--- AUTHENTICATION AND SESSION TESTS ---")
+
+    app.config["TESTING"] = True
+
+    client = app.test_client()
+
+    # ---------------------------------------------------------
+    # TEST 1
+    # User should not access POS without logging in.
+    # ---------------------------------------------------------
+
+    response = client.get(
+        "/",
+        follow_redirects=False
+    )
+
+    redirected = response.status_code in (302, 303)
+
+    print_result(
+        redirected,
+        "Unauthenticated user is redirected from the POS."
+    )
+
+    # ---------------------------------------------------------
+    # TEST 2
+    # Invalid password should be rejected.
+    # ---------------------------------------------------------
+
+    response = client.post(
+        "/login",
+        data={
+            "username": TEST_USERNAME,
+            "password": "WrongPassword123"
+        },
+        follow_redirects=True
+    )
+
+    invalid_rejected = (
+        b"Invalid login credentials" in response.data
+    )
+
+    print_result(
+        invalid_rejected,
+        "Invalid login credentials are rejected."
+    )
+
+    # ---------------------------------------------------------
+    # TEST 3
+    # Valid username and password should authenticate.
+    # ---------------------------------------------------------
+
+    response = client.post(
+        "/login",
+        data={
+            "username": TEST_USERNAME,
+            "password": TEST_PASSWORD
+        },
+        follow_redirects=True
+    )
+
+    successful_login = response.status_code == 200
+
+    print_result(
+        successful_login,
+        "Valid employee credentials successfully log in."
+    )
+
+    # ---------------------------------------------------------
+    # TEST 4
+    # Username should be stored in session.
+    # ---------------------------------------------------------
+
+    with client.session_transaction() as session_data:
+
+        username_saved = (
+            session_data.get("username")
+            == TEST_USERNAME
+        )
+
+        permanent_session = session_data.permanent
+
+    print_result(
+        username_saved,
+        "Authenticated employee username is stored in session."
+    )
+
+    # ---------------------------------------------------------
+    # TEST 5
+    # Session should be permanent so Flask timeout applies.
+    # ---------------------------------------------------------
+
+    print_result(
+        permanent_session,
+        "Employee session uses the configured timeout."
+    )
+
+    # ---------------------------------------------------------
+    # TEST 6
+    # Logged-in employee should access the POS.
+    # ---------------------------------------------------------
+
+    response = client.get(
+        "/",
+        follow_redirects=False
+    )
+
+    can_access_pos = response.status_code == 200
+
+    print_result(
+        can_access_pos,
+        "Authenticated employee can access the POS."
+    )
+
+    # ---------------------------------------------------------
+    # TEST 7
+    # Simulate more than 5 minutes of inactivity.
+    # ---------------------------------------------------------
+
+    expired_time = (
+        datetime.now(timezone.utc)
+        - timedelta(minutes=6)
+    )
+
+    with client.session_transaction() as session_data:
+
+        session_data["last_activity"] = (
+            expired_time.isoformat()
+        )
+
+    response = client.get(
+        "/",
+        follow_redirects=False
+    )
+
+    timed_out = response.status_code in (302, 303)
+
+    with client.session_transaction() as session_data:
+
+        timeout_cleared_session = (
+            "username" not in session_data
+        )
+
+    print_result(
+        timed_out and timeout_cleared_session,
+        "Inactive employee session times out after 5 minutes."
+    )
+
+    # ---------------------------------------------------------
+    # TEST 8
+    # Timed-out user should no longer access POS.
+    # ---------------------------------------------------------
+
+    response = client.get(
+        "/",
+        follow_redirects=False
+    )
+
+    blocked_after_timeout = (
+        response.status_code in (302, 303)
+    )
+
+    print_result(
+        blocked_after_timeout,
+        "Timed-out employee cannot access the protected POS."
+    )
+
+    # ---------------------------------------------------------
+    # TEST 9
+    # Log back in so logout can be tested separately.
+    # ---------------------------------------------------------
+
+    client.post(
+        "/login",
+        data={
+            "username": TEST_USERNAME,
+            "password": TEST_PASSWORD
+        },
+        follow_redirects=True
+    )
+
+    response = client.get(
+        "/logout",
+        follow_redirects=True
+    )
+
+    with client.session_transaction() as session_data:
+
+        logged_out = (
+            "username" not in session_data
+        )
+
+    print_result(
+        logged_out,
+        "Logout clears the authenticated employee session."
+    )
+
+    # ---------------------------------------------------------
+    # TEST 10
+    # Logged-out user should be blocked again.
+    # ---------------------------------------------------------
+
+    response = client.get(
+        "/",
+        follow_redirects=False
+    )
+
+    blocked_after_logout = (
+        response.status_code in (302, 303)
+    )
+
+    print_result(
+        blocked_after_logout,
+        "Logged-out employee cannot access the protected POS."
+    )
+
+    print(
+        "\n--- AUTHENTICATION AND SESSION TESTING COMPLETE ---"
+    )
+
+
+if __name__ == "__main__":
+    main()

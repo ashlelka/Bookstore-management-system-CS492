@@ -10,18 +10,18 @@
         "use_pos"
       ]
     },
+    "testcashier": {
+      "role": "Cashier",
+      "permissions": [
+        "use_pos"
+      ]
+    },
     "testuser": {
       "role": "Cashier",
       "permissions": [
         "use_pos"
       ],
       "locked": false
-    },
-    "testcashier": {
-      "role": "Cashier",
-      "permissions": [
-        "use_pos"
-      ]
     }
   }
 }

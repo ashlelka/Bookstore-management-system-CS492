@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, session, url_for
+from datetime import datetime, timezone
 
 # Ashley's employee account system
 from user_management import (
@@ -38,14 +39,12 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        # Ashley's password authentication
         user = authenticate_user(username, password)
 
-        # Load Alexis's role/permission/lock information
         load_users()
         merged_user = get_user(username)
 
-        # Reject locked accounts
+        # Prevent locked employees from logging in.
         if merged_user and merged_user.get("locked"):
             return render_template(
                 "index.html",
@@ -54,18 +53,28 @@ def login():
 
         # Successful authentication
         if user:
+             # Create authenticated employee session.
+            session.permanent = True
             session["username"] = user["username"]
+
+         # Record the employee's initial activity time.
+            session["last_activity"] = datetime.now(
+                timezone.utc
+             ).isoformat()
+
+         # Start each login with a clean shopping cart.
             session.pop("cart", None)
 
             return redirect(url_for("index"))
 
+        # Authentication failed.
         return render_template(
             "index.html",
             error="Invalid login credentials. Please try again."
         )
 
+    # Normal GET request displays login page.
     return render_template("index.html")
-
 
 # ---------------------------------------------------------
 # REGISTER
@@ -144,8 +153,13 @@ def dashboard():
 
 @auth_bp.route("/logout")
 def logout():
+    """
+    Log out the current employee.
 
-    # Clear login, cart, tax selections, and other session values.
+    Clearing the session removes the authenticated username,
+    shopping cart, and other session-based information.
+    """
+
     session.clear()
 
     return redirect(url_for("auth.login"))

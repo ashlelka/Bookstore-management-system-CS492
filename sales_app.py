@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from securelogin import auth_bp
 from flask import Flask, redirect, render_template, request, session, url_for, Response
-
+from datetime import datetime, timedelta, timezone
 from tax_rates import STATES, STATES_BY_CODE, load_tax_rates, state_rate
 from inventory import (
     decrement_quantities,
@@ -30,6 +30,10 @@ from users import (
 )
 app = Flask(__name__)
 app.secret_key = "bookstore-pos-dev"
+# T1-008 Session Security
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=5)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 app.register_blueprint(auth_bp)
 
@@ -251,7 +255,38 @@ def can_use_pos():
 def can_manage_users():
     return has_permission(current_user(), "manage_users")
 
+# T1-008 - Employee inactivity timeout
+SESSION_TIMEOUT_MINUTES = 5
 
+
+@app.before_request
+def session_timeout():
+    """
+    Log out an authenticated employee after
+    five minutes without activity.
+    """
+
+    if "username" not in session:
+        return
+
+    now = datetime.now(timezone.utc)
+
+    last_activity = session.get("last_activity")
+
+    if last_activity:
+        last_activity = datetime.fromisoformat(last_activity)
+
+        inactive_time = now - last_activity
+
+        if inactive_time > timedelta(
+            minutes=SESSION_TIMEOUT_MINUTES
+        ):
+            session.clear()
+
+            return redirect(url_for("auth.login"))
+
+    # Update activity time for the current request.
+    session["last_activity"] = now.isoformat()
 @app.context_processor
 def inject_staff():
     user = current_user()
