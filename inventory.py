@@ -1,6 +1,6 @@
 """
 Bookstore Management System
-Sprint 1 - T1-003
+Sprint 1 - T1-003 / T1-004
 Developer: Ashley Lindamood
 
 Description:
@@ -13,6 +13,12 @@ Read   - View and search books
 Update - Edit an existing book
 Delete - Remove a book
 
+T1-004 Low Stock Alerts:
+- Reorder threshold stored for each book
+- Low-stock and out-of-stock status logic
+- Low-stock notification generation
+- Automatic alert check after POS inventory updates
+
 Book information is stored in a JSON file named books.json.
 """
 
@@ -22,6 +28,10 @@ from book import Book
 
 # JSON file used as the bookstore inventory database.
 FILE_NAME = "books.json"
+
+# Default reorder level used for older inventory records that
+# do not already contain a reorder_threshold field.
+DEFAULT_REORDER_THRESHOLD = 5
 
 
 def load_books():
@@ -115,7 +125,8 @@ def create_book_record(
     book_format,
     price,
     quantity,
-    location
+    location,
+    reorder_threshold=DEFAULT_REORDER_THRESHOLD
 ):
     """
     Creates a new book record and saves it to the JSON file.
@@ -134,6 +145,10 @@ def create_book_record(
     # Prevent negative inventory quantities.
     if quantity < 0:
         return False, "Quantity cannot be negative."
+
+    # Prevent negative reorder thresholds.
+    if reorder_threshold < 0:
+        return False, "Reorder threshold cannot be negative."
 
     # Generate a unique Book ID.
     book_id = generate_book_id(books)
@@ -154,7 +169,11 @@ def create_book_record(
     )
 
     # Convert the Book object to a dictionary.
-    books.append(new_book.to_dict())
+    # The reorder threshold is stored directly in the inventory
+    # record so the existing Book class does not need to change.
+    new_book_record = new_book.to_dict()
+    new_book_record["reorder_threshold"] = reorder_threshold
+    books.append(new_book_record)
 
     # Save the inventory.
     save_books(books)
@@ -199,6 +218,102 @@ def update_book_quantity(book_id, new_quantity):
     return False
 
 
+
+# ==========================================================
+# T1-004 LOW STOCK ALERT HELPERS
+# ==========================================================
+
+def get_reorder_threshold(book):
+    """
+    Returns the reorder threshold for a book.
+
+    Older inventory records may not contain the field yet,
+    so the default threshold is used when necessary.
+    """
+
+    try:
+        return int(
+            book.get(
+                "reorder_threshold",
+                DEFAULT_REORDER_THRESHOLD
+            )
+        )
+    except (TypeError, ValueError):
+        return DEFAULT_REORDER_THRESHOLD
+
+
+def get_stock_status(book):
+    """
+    Returns the current stock status for a book.
+    """
+
+    quantity = int(book.get("quantity", 0))
+    threshold = get_reorder_threshold(book)
+
+    if quantity == 0:
+        return "Out of Stock"
+
+    if quantity <= threshold:
+        return "Low Stock"
+
+    return "In Stock"
+
+
+def get_low_stock_books():
+    """
+    Returns books that have reached or fallen below
+    their reorder threshold.
+    """
+
+    books = load_books()
+    low_stock_books = []
+
+    for book in books:
+        quantity = int(book.get("quantity", 0))
+        threshold = get_reorder_threshold(book)
+
+        if quantity <= threshold:
+            low_stock_books.append(book)
+
+    return low_stock_books
+
+
+def display_low_stock_alerts():
+    """
+    Displays low-stock notifications for inventory items
+    that need to be reordered.
+    """
+
+    low_stock_books = get_low_stock_books()
+
+    print("\n==============================")
+    print("       LOW STOCK ALERTS")
+    print("==============================")
+
+    if not low_stock_books:
+        print("\nNo books currently require reordering.")
+        return []
+
+    for book in low_stock_books:
+        threshold = get_reorder_threshold(book)
+        status = get_stock_status(book)
+
+        print("--------------------------------")
+        print(f"ALERT: {book['title']}")
+        print(f"Book ID: {book['book_id']}")
+        print(f"Quantity: {book.get('quantity', 0)}")
+        print(f"Reorder Threshold: {threshold}")
+        print(f"Status: {status}")
+
+    print("--------------------------------")
+    print(
+        f"{len(low_stock_books)} book(s) "
+        "require inventory attention."
+    )
+
+    return low_stock_books
+
+
 def delete_book_by_id(book_id):
     """
     Deletes a book using its Book ID.
@@ -225,6 +340,10 @@ def decrement_quantities(sale_items):
     This function is used by the sales system to update
     inventory after books are purchased.
 
+    It also checks the reorder threshold after each
+    successful inventory update so T1-004 can generate
+    a low-stock notification.
+
     Args:
         sale_items: List of books and quantities sold.
 
@@ -236,31 +355,36 @@ def decrement_quantities(sale_items):
     results = []
 
     for sale_item in sale_items:
-# Accept either Ashley's inventory field names
+
+        # Accept either Ashley's inventory field names
         # or Alexis's POS field names.
         book_id = sale_item.get(
             "book_id",
             sale_item.get("productId")
-)
+        )
 
         quantity_sold = sale_item.get(
             "quantity",
             sale_item.get("qty", 0)
-)
+        )
+
         try:
             book_id = int(book_id)
             quantity_sold = int(quantity_sold)
+
         except (ValueError, TypeError):
             results.append({
-            "book_id": book_id,
-            "success": False,
-            "message": "Book ID and quantity must be integers."
-        })
-        continue
+                "book_id": book_id,
+                "success": False,
+                "message": (
+                    "Book ID and quantity must be integers."
+                )
+            })
+            continue
 
-    book_found = False
+        book_found = False
 
-    for book in books:
+        for book in books:
 
             if book["book_id"] == book_id:
                 book_found = True
@@ -270,7 +394,10 @@ def decrement_quantities(sale_items):
                     results.append({
                         "book_id": book_id,
                         "success": False,
-                        "message": "Sale quantity must be greater than zero."
+                        "message": (
+                            "Sale quantity must be "
+                            "greater than zero."
+                        )
                     })
                     break
 
@@ -286,16 +413,38 @@ def decrement_quantities(sale_items):
                 # Subtract the sold quantity.
                 book["quantity"] -= quantity_sold
 
+                threshold = get_reorder_threshold(book)
+                stock_status = get_stock_status(book)
+                low_stock = (
+                    book["quantity"] <= threshold
+                )
+
+                notification = None
+
+                if low_stock:
+                    notification = (
+                        f"LOW STOCK ALERT: "
+                        f"{book['title']} has "
+                        f"{book['quantity']} remaining. "
+                        f"Reorder threshold: {threshold}."
+                    )
+
                 results.append({
                     "book_id": book_id,
                     "success": True,
-                    "message": "Inventory updated successfully.",
-                    "remaining_quantity": book["quantity"]
+                    "message": (
+                        "Inventory updated successfully."
+                    ),
+                    "remaining_quantity": book["quantity"],
+                    "reorder_threshold": threshold,
+                    "stock_status": stock_status,
+                    "low_stock": low_stock,
+                    "notification": notification
                 })
 
                 break
 
-    if not book_found:
+        if not book_found:
             results.append({
                 "book_id": book_id,
                 "success": False,
@@ -306,6 +455,7 @@ def decrement_quantities(sale_items):
     save_books(books)
 
     return results
+
 
 # --------------------------------------------------
 # CREATE
@@ -387,6 +537,34 @@ def add_book():
         )
         return
 
+    # Validate reorder threshold.
+    try:
+        reorder_threshold_entry = input(
+            f"Enter reorder threshold "
+            f"[{DEFAULT_REORDER_THRESHOLD}]: "
+        ).strip()
+
+        if reorder_threshold_entry:
+            reorder_threshold = int(
+                reorder_threshold_entry
+            )
+        else:
+            reorder_threshold = (
+                DEFAULT_REORDER_THRESHOLD
+            )
+
+        if reorder_threshold < 0:
+            print(
+                "\nReorder threshold cannot be negative."
+            )
+            return
+
+    except ValueError:
+        print(
+            "\nReorder threshold must be a whole number."
+        )
+        return
+
     # Create a Book object using the information entered by the user.
     new_book = Book(
         book_id,
@@ -403,7 +581,11 @@ def add_book():
 )
 
 # Convert the Book object to a dictionary before saving it to JSON.
-    books.append(new_book.to_dict())
+    new_book_record = new_book.to_dict()
+    new_book_record["reorder_threshold"] = (
+        reorder_threshold
+    )
+    books.append(new_book_record)
 
     # Save the updated list to JSON.
     save_books(books)
@@ -466,6 +648,13 @@ def view_inventory():
         )
         print(
             f"Quantity: {book['quantity']}"
+        )
+        print(
+            f"Reorder Threshold: "
+            f"{get_reorder_threshold(book)}"
+        )
+        print(
+            f"Stock Status: {get_stock_status(book)}"
         )
         print(
             f"Location: {book['location']}"
@@ -547,6 +736,13 @@ def search_book():
             f"Quantity: {book['quantity']}"
         )
         print(
+            f"Reorder Threshold: "
+            f"{get_reorder_threshold(book)}"
+        )
+        print(
+            f"Stock Status: {get_stock_status(book)}"
+        )
+        print(
             f"Location: {book['location']}"
         )
 
@@ -626,6 +822,15 @@ def edit_book():
 
             quantity = input(
                 f"Quantity [{book['quantity']}]: "
+            ).strip()
+
+            current_threshold = get_reorder_threshold(
+                book
+            )
+
+            reorder_threshold = input(
+                f"Reorder Threshold "
+                f"[{current_threshold}]: "
             ).strip()
 
             location = input(
@@ -716,6 +921,39 @@ def edit_book():
                         "whole number."
                     )
                     return
+
+            # Validate the new reorder threshold.
+            if reorder_threshold:
+
+                try:
+                    new_threshold = int(
+                        reorder_threshold
+                    )
+
+                    if new_threshold < 0:
+                        print(
+                            "\nReorder threshold cannot "
+                            "be negative."
+                        )
+                        return
+
+                    book[
+                        "reorder_threshold"
+                    ] = new_threshold
+
+                except ValueError:
+                    print(
+                        "\nReorder threshold must be a "
+                        "whole number."
+                    )
+                    return
+
+            elif "reorder_threshold" not in book:
+                # Add the default to older records when
+                # they are edited for the first time.
+                book["reorder_threshold"] = (
+                    DEFAULT_REORDER_THRESHOLD
+                )
 
             if location:
                 book["location"] = location

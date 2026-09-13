@@ -10,6 +10,7 @@
         "format": "Paperback",
         "price": 10.99,
         "quantity": 4,
+        "reorder_threshold": 5,
         "location": "Aisle A - Shelf 1"
     },
     {
@@ -23,6 +24,7 @@
         "format": "Paperback",
         "price": 14.99,
         "quantity": 8,
+        "reorder_threshold": 5,
         "location": "A2"
     },
     {
@@ -36,6 +38,7 @@
         "format": "Paperback",
         "price": 11.99,
         "quantity": 11,
+        "reorder_threshold": 5,
         "location": "A3"
     },
     {
@@ -49,6 +52,7 @@
         "format": "Paperback",
         "price": 15.99,
         "quantity": 7,
+        "reorder_threshold": 5,
         "location": "B1"
     },
     {
@@ -62,6 +66,7 @@
         "format": "Hardcover",
         "price": 39.99,
         "quantity": 5,
+        "reorder_threshold": 5,
         "location": "C1"
     },
     {
@@ -75,6 +80,7 @@
         "format": "Paperback",
         "price": 15.0,
         "quantity": 25,
+        "reorder_threshold": 5,
         "location": "F1"
     },
     {
@@ -88,6 +94,7 @@
         "format": "Paperback",
         "price": 15.0,
         "quantity": 25,
+        "reorder_threshold": 5,
         "location": "F2"
     },
     {
@@ -101,6 +108,7 @@
         "format": "Paperback",
         "price": 15.0,
         "quantity": 25,
+        "reorder_threshold": 5,
         "location": "F3"
     },
     {
@@ -114,6 +122,7 @@
         "format": "Paperback",
         "price": 15.0,
         "quantity": 25,
+        "reorder_threshold": 5,
         "location": "F4"
     },
     {
@@ -127,6 +136,7 @@
         "format": "Paperback",
         "price": 15.0,
         "quantity": 25,
+        "reorder_threshold": 5,
         "location": "F5"
     },
     {
@@ -140,6 +150,7 @@
         "format": "Paperback",
         "price": 15.0,
         "quantity": 25,
+        "reorder_threshold": 5,
         "location": "F6"
     }
 ]
