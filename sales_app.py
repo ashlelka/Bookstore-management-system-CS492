@@ -7,6 +7,7 @@ from securelogin import auth_bp
 from flask import Flask, redirect, render_template, request, session, url_for, Response
 from datetime import datetime, timedelta, timezone
 from tax_rates import STATES, STATES_BY_CODE, load_tax_rates, state_rate
+
 from inventory import (
     decrement_quantities,
     load_books,
@@ -17,6 +18,7 @@ from inventory import (
 from user_management import authenticate_user
 from database import (
     record_sale,
+    load_sales,
     connection_status
 )
 from users import (
@@ -118,7 +120,21 @@ def cart_lines():
             "line_total": product["price"] * qty,
         })
     return lines
+def format_receipt_date(timestamp):
+    """Format a stored sale timestamp for receipt history."""
 
+    if not timestamp:
+        return ""
+
+    try:
+        sale_date = datetime.fromisoformat(timestamp)
+
+        return sale_date.strftime(
+            "%b %d, %Y %I:%M %p"
+        )
+
+    except (ValueError, TypeError):
+        return timestamp
 
 def item_count():
     return sum(int(qty) for qty in cart().values())
@@ -182,7 +198,86 @@ def generate_receipt(sale):
     ]
     return "\n".join(lines)
 
+# T2-008 - Generate receipt from stored sales history
+def generate_historical_receipt(sale):
 
+    sale_id = sale.get(
+        "sale_id",
+        sale.get("id", "Receipt")
+    )
+
+    timestamp = sale.get(
+        "date",
+        sale.get(
+            "datetime",
+            sale.get("timestamp", "")
+        )
+    )
+
+    lines = [
+        "BOOKSTORE MANAGEMENT SYSTEM",
+        str(sale_id),
+        format_receipt_date(timestamp),
+        "-" * 40,
+    ]
+
+    # Display stored sale items when available.
+    items = sale.get("items", [])
+
+    for item in items:
+
+        name = item.get(
+            "name",
+            item.get("title", "Book")
+        )
+
+        qty = item.get(
+            "qty",
+            item.get("quantity", 1)
+        )
+
+        unit_price = item.get(
+            "unitPrice",
+            item.get("unit_price", item.get("price", 0))
+        )
+
+        line_total = item.get(
+            "lineTotal",
+            item.get("line_total", unit_price * qty)
+        )
+
+        lines.append(
+            f"{qty} x {name}"
+        )
+
+        lines.append(
+            f"    {money(float(unit_price))} each"
+            f"   {money(float(line_total))}"
+        )
+
+    lines.append("-" * 40)
+
+    subtotal = float(
+        sale.get("subtotal", 0)
+    )
+
+    tax = float(
+        sale.get("tax", 0)
+    )
+
+    total = float(
+        sale.get("total", 0)
+    )
+
+    lines.extend([
+        f"{'Subtotal':<24}{money(subtotal)}",
+        f"{'Sales tax':<24}{money(tax)}",
+        f"{'TOTAL':<24}{money(total)}",
+        "-" * 40,
+        "Thank you for shopping with us.",
+    ])
+
+    return "\n".join(lines)
 def update_inventory(sale_items):
     # T1-007: after checkout, decrement stock through inventory module (T1-003).
     results = decrement_quantities(sale_items)
@@ -506,7 +601,56 @@ def download_receipt():
         mimetype="text/plain",
         headers={"Content-Disposition": f"attachment; filename={sale_id}.txt"},
     )
+# T2-008 - Receipt History
+@app.get("/receipts")
+def receipt_history():
 
+    sales = load_sales()
+
+    # Keep the original database index so each
+    # stored transaction can be opened individually.
+    receipt_records = list(enumerate(sales))
+
+    # Newest receipts appear first.
+    receipt_records.reverse()
+
+    return render_template(
+        "receipt_history.html",
+        receipt_records=receipt_records,
+        money=money,
+        format_receipt_date=format_receipt_date
+    )
+# T2-008 - View a stored receipt
+@app.get("/receipts/<int:receipt_index>")
+def view_receipt(receipt_index):
+
+    sales = load_sales()
+
+    if receipt_index < 0 or receipt_index >= len(sales):
+        return redirect(url_for("receipt_history"))
+
+    sale = sales[receipt_index]
+
+    # Use the stored receipt when available.
+    # Use the original receipt if it was stored.
+    receipt_text = sale.get("receipt")
+
+# Older stored sales may not contain the original
+# receipt text, so rebuild it from sales history.
+    if not receipt_text:
+        receipt_text = generate_historical_receipt(sale)
+
+    sale_id = sale.get(
+        "sale_id",
+        sale.get("id", "Receipt")
+    )
+
+    return render_template(
+        "receipt.html",
+        receipt_text=receipt_text,
+        sale_id=sale_id,
+        banner=None
+    )
 
 # T1-010: sign in, roles, permissions, lock/disable
 

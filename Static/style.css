@@ -441,3 +441,87 @@ h1 { margin: 0; font-size: 1.45rem; }
 .users tr.is-locked { opacity: 0.7; }
 .perm { display: block; margin: 0.2rem 0; font-size: 0.9rem; }
 .users form { margin: 0.25rem 0 0; }
+/* =========================================
+   T2-008 - Receipt Enhancements
+   Developer: Ashley Lindamood
+   ========================================= */
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.receipt-header h1 {
+  margin-bottom: 5px;
+}
+
+.receipt-header p {
+  margin: 4px 0;
+}
+
+.receipt-sale-id {
+  font-weight: bold;
+}
+
+.receipt-actions {
+  margin-top: 20px;
+}
+
+.receipt-actions button {
+  border: none;
+  cursor: pointer;
+}
+
+/* T2-008 - Print-friendly receipt */
+@media print {
+
+  .receipt-actions {
+    display: none;
+  }
+
+  .receipt-page {
+    background: white;
+  }
+
+  .receipt-card {
+    box-shadow: none;
+    border: none;
+    margin: 0;
+  }
+}
+/* T2-008 - Receipt History */
+
+.receipt-history {
+  margin-top: 20px;
+}
+
+.history-item {
+  padding: 14px;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.history-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 1.05rem;
+}
+
+.history-details {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+/* T2-008 - Historical Receipt Actions */
+
+.history-actions {
+  margin-top: 12px;
+}
+
+.history-actions a {
+  display: inline-block;
+}

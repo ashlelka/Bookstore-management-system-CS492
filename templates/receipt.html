@@ -1,8 +1,10 @@
 <!--
 Bookstore Management System
 Sprint 1 - T1-007
-Developer: Alexis Silva
-Printed sale receipt after checkout
+Original Developer: Alexis Silva
+Sprint 2 - T2-008 Receipt Enhancements
+Developer: Ashley Lindamood
+Receipt layout and print functionality
 -->
 
 <!DOCTYPE html>
@@ -10,17 +12,66 @@ Printed sale receipt after checkout
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Receipt {{ sale_id }}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+  >
 </head>
+
 <body class="receipt-page">
+
   <div class="receipt-card">
-    <h1>Receipt</h1>
-    <pre id="receiptText">{{ receipt_text }}</pre>
-    <div class="actions">
-      <a class="ghost" href="{{ url_for('index') }}">Back to register</a>
-      <a class="primary" href="{{ url_for('download_receipt') }}" id="downloadReceiptBtn">Download .txt</a>
+
+    <!-- T2-008: Improved receipt layout -->
+    <div class="receipt-header">
+      <h1>Ana's Anomalous Anthologies</h1>
+      <p>Bookstore Receipt</p>
+      <p class="receipt-sale-id">
+        {{ sale_id }}
+      </p>
     </div>
-  </div>
-</body>
-</html>
+
+    <!-- Alexis's original generated receipt -->
+    <pre id="receiptText">{{ receipt_text }}</pre>
+
+    <!-- T2-008: Receipt actions -->
+    <!-- T2-008: Receipt actions -->
+<div class="actions receipt-actions">
+
+  <a
+    class="ghost"
+    href="{{ url_for('index') }}"
+  >
+    Back to Register
+  </a>
+
+  <!-- T2-008: Receipt History -->
+  <a
+    class="ghost"
+    href="{{ url_for('receipt_history') }}"
+  >
+    Receipt History
+  </a>
+
+  <a
+    class="primary"
+    href="{{ url_for('download_receipt') }}"
+    id="downloadReceiptBtn"
+  >
+    Download .txt
+  </a>
+
+  <!-- T2-008: Print receipt -->
+  <button
+    type="button"
+    class="primary"
+    onclick="window.print()"
+    id="printReceiptBtn"
+  >
+    Print Receipt
+  </button>
+
+</div>

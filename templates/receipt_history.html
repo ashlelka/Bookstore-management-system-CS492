@@ -1,0 +1,118 @@
+<!--
+Bookstore Management System
+Sprint 2 - T2-008
+Developer: Ashley Lindamood
+Receipt History
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Receipt History</title>
+
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+  >
+</head>
+
+<body class="receipt-page">
+
+  <div class="receipt-card">
+
+    <div class="receipt-header">
+      <h1>Ana's Anomalous Anthologies</h1>
+      <p>Receipt History</p>
+    </div>
+
+    {% if receipt_records %}
+
+    <div class="receipt-history">
+
+        {% for receipt_index, sale in receipt_records %}
+
+          <div class="history-item">
+            <div class="history-actions">
+
+  <a
+    class="ghost"
+    href="{{ url_for(
+      'view_receipt',
+      receipt_index=receipt_index
+    ) }}"
+  >
+    View Receipt
+  </a>
+
+</div>
+            <div class="history-heading">
+
+              <strong>
+                {{ sale.get('sale_id', sale.get('id', 'Sale')) }}
+              </strong>
+
+              <span>
+                {{ money(sale.get('total', 0)) }}
+              </span>
+
+            </div>
+
+            <div class="history-details">
+
+              <span>
+  {{ format_receipt_date(
+      sale.get(
+        'date',
+        sale.get(
+          'datetime',
+          sale.get('timestamp', '')
+        )
+      )
+  ) }}
+</span>
+
+              <span>
+                {{ sale.get('tax_state',
+                   sale.get('taxState', '')) }}
+              </span>
+
+            </div>
+
+          </div>
+
+        {% endfor %}
+
+      </div>
+
+    {% else %}
+
+      <p>
+        No receipt history is currently available.
+      </p>
+
+    {% endif %}
+
+    <div class="actions receipt-actions">
+
+  <a
+    class="ghost"
+    href="{{ url_for('index') }}"
+  >
+    Back to Register
+  </a>
+
+</div>
+
+  </div>
+
+</body>
+
+</html>
