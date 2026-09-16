@@ -525,3 +525,45 @@ h1 { margin: 0; font-size: 1.45rem; }
 .history-actions a {
   display: inline-block;
 }
+/* T2-008 - Email Receipt */
+
+.email-receipt {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+}
+
+.email-receipt h2 {
+  margin-bottom: 10px;
+}
+
+.email-receipt form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.email-receipt input {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.email-receipt button {
+  border: none;
+  cursor: pointer;
+}
+
+.email-status {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+@media print {
+  .email-receipt {
+    display: none;
+  }
+}

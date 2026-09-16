@@ -1,7 +1,11 @@
 from copy import deepcopy
 from datetime import datetime
+from http import server
 import subprocess
 import sys
+from email.message import EmailMessage
+import os
+import smtplib
 from pathlib import Path
 from securelogin import auth_bp
 from flask import Flask, redirect, render_template, request, session, url_for, Response
@@ -220,7 +224,7 @@ def generate_historical_receipt(sale):
         format_receipt_date(timestamp),
         "-" * 40,
     ]
-
+    
     # Display stored sale items when available.
     items = sale.get("items", [])
 
@@ -276,7 +280,56 @@ def generate_historical_receipt(sale):
         "-" * 40,
         "Thank you for shopping with us.",
     ])
+    return "\n".join(lines)
+    # T2-008 - Email Receipt
+def send_receipt_email(customer_email, receipt_text, sale_id):
+    """
+    Email a completed bookstore receipt to the customer.
+    Email credentials are loaded from environment variables
+    so passwords are not stored in the source code.
+    """
 
+    sender_email = os.environ.get("BMS_EMAIL")
+    sender_password = os.environ.get("BMS_EMAIL_PASSWORD")
+
+    if not sender_email or not sender_password:
+        return False, "Email service is not configured."
+
+    message = EmailMessage()
+
+    message["Subject"] = (
+        f"Ana's Anomalous Anthologies Receipt - {sale_id}"
+    )
+
+    message["From"] = sender_email
+    message["To"] = customer_email
+
+    message.set_content(
+        "Thank you for shopping with "
+        "Ana's Anomalous Anthologies!\n\n"
+        + receipt_text
+    )
+
+    try:
+        with smtplib.SMTP_SSL(
+        "smtp.mail.yahoo.com",
+            465,
+                timeout=20
+        ) as server:
+            
+            server.login(
+                sender_email,
+                sender_password
+            )
+
+            server.send_message(message)
+
+        return True, "Receipt emailed successfully."
+
+    except Exception as error:
+        print("Receipt email error:", error)
+
+        return False, "Unable to send receipt."
     return "\n".join(lines)
 def update_inventory(sale_items):
     # T1-007: after checkout, decrement stock through inventory module (T1-003).
@@ -589,6 +642,8 @@ def receipt():
         receipt_text=text,
         sale_id=session.get("last_sale_id", "receipt"),
         banner=session.get("banner"),
+        email_message=request.args.get("email_message"),
+        email_success=request.args.get("email_success")
     )
 
 
@@ -644,12 +699,52 @@ def view_receipt(receipt_index):
         "sale_id",
         sale.get("id", "Receipt")
     )
+    
 
     return render_template(
         "receipt.html",
         receipt_text=receipt_text,
         sale_id=sale_id,
         banner=None
+    )
+    # T2-008 - Email Receipt
+@app.post("/receipt/email")
+def email_receipt():
+
+    customer_email = (
+        request.form.get("customer_email", "")
+        .strip()
+    )
+
+    receipt_text = session.get("last_receipt", "")
+    sale_id = session.get(
+        "last_sale_id",
+        "receipt"
+    )
+
+    if not customer_email:
+        return redirect(
+            url_for(
+                "receipt",
+                email_message="Enter a customer email address."
+            )
+        )
+
+    if not receipt_text:
+        return redirect(url_for("index"))
+
+    success, message = send_receipt_email(
+        customer_email,
+        receipt_text,
+        sale_id
+    )
+
+    return redirect(
+        url_for(
+            "receipt",
+            email_message=message,
+            email_success=int(success)
+        )
     )
 
 # T1-010: sign in, roles, permissions, lock/disable
