@@ -1,5 +1,7 @@
 from copy import deepcopy
 from datetime import datetime
+import subprocess
+import sys
 from pathlib import Path
 from securelogin import auth_bp
 from flask import Flask, redirect, render_template, request, session, url_for, Response
@@ -320,7 +322,34 @@ def require_staff():
     if not current_user():
         return redirect(url_for("auth.login"))
 
+# T2-007 - Financial Dashboard
+@app.get("/financial-dashboard")
+def financial_dashboard():
 
+    # user must be logged in
+    if "username" not in session:
+        return redirect(url_for("auth.login"))
+
+    # only Admin and Manager can view financial information
+    if not can_manage_users():
+        return redirect(url_for("index"))
+
+    dashboard_file = (
+        Path(__file__).resolve().parent
+        / "financials_dashboard.py"
+    )
+
+    # start Greg's Streamlit financial dashboard
+    subprocess.Popen([
+        sys.executable,
+        "-m",
+        "streamlit",
+        "run",
+        str(dashboard_file),
+        "--server.headless=true"
+    ])
+
+    return redirect("http://localhost:8501")
 # T1-006: sales screen (catalog + ticket)
 
 @app.route("/")
