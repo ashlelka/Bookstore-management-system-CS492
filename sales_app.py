@@ -25,6 +25,7 @@ from database import (
     load_sales,
     connection_status
 )
+from suppliers import add_supplier, load_suppliers
 from users import (
     PERMISSIONS,
     ROLES,
@@ -36,7 +37,7 @@ from users import (
     set_locked,
     set_permissions,
 )
-app = Flask(__name__)
+app = Flask(__name__, static_folder="Static")
 app.secret_key = "bookstore-pos-dev"
 # T1-008 Session Security
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=5)
@@ -405,6 +406,10 @@ def can_use_pos():
 def can_manage_users():
     return has_permission(current_user(), "manage_users")
 
+
+def can_manage_suppliers():
+    return has_permission(current_user(), "manage_suppliers")
+
 # T1-008 - Employee inactivity timeout
 SESSION_TIMEOUT_MINUTES = 5
 
@@ -444,6 +449,7 @@ def inject_staff():
         "current_user": user,
         "can_use_pos": can_use_pos(),
         "can_manage_users": can_manage_users(),
+        "can_manage_suppliers": can_manage_suppliers(),
     }
 
 
@@ -836,6 +842,50 @@ def database_page():
         status=status,
         money=money
     )
+
+
+# T2-002: supplier table, maintenance screen, add records
+
+def supplier_form_values():
+    return {field: request.form.get(field, "") for field in (
+        "name", "contact_name", "email", "phone", "city", "state", "categories", "notes",
+    )}
+
+
+@app.get("/suppliers")
+def supplier_admin():
+    if not can_manage_suppliers():
+        return redirect(url_for("index"))
+    return render_template(
+        "suppliers.html",
+        suppliers=load_suppliers(),
+        states=STATES,
+        form={
+            "name": "", "contact_name": "", "email": "", "phone": "",
+            "city": "", "state": "", "categories": "", "notes": "",
+        },
+        notice=request.args.get("notice"),
+        error=None,
+    )
+
+
+@app.post("/suppliers")
+def create_supplier():
+    if not can_manage_suppliers():
+        return redirect(url_for("index"))
+    form = supplier_form_values()
+    ok, result = add_supplier(form)
+    if not ok:
+        return render_template(
+            "suppliers.html",
+            suppliers=load_suppliers(),
+            states=STATES,
+            form=form,
+            notice=None,
+            error=result,
+        )
+    return redirect(url_for("supplier_admin", notice="Added supplier " + str(result) + "."))
+
 
 # T1-007: test a sample sale
 

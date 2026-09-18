@@ -1,0 +1,125 @@
+{
+  "suppliers": [
+    {
+      "supplier_id": 1,
+      "active": true,
+      "name": "Penguin Random House",
+      "contact_name": "Maria Chen",
+      "email": "orders@penguinrandomhouse.example",
+      "phone": "212-555-0148",
+      "city": "New York",
+      "state": "NY",
+      "categories": "Fiction, Trade",
+      "notes": "Primary trade publisher"
+    },
+    {
+      "supplier_id": 2,
+      "active": true,
+      "name": "Ingram Content Group",
+      "contact_name": "Jordan Blake",
+      "email": "wholesale@ingram.example",
+      "phone": "615-555-0110",
+      "city": "La Vergne",
+      "state": "TN",
+      "categories": "Wholesale, Special order",
+      "notes": "Main wholesaler for backlist titles"
+    },
+    {
+      "supplier_id": 3,
+      "active": true,
+      "name": "Scholastic",
+      "contact_name": "Avery Patel",
+      "email": "schools@scholastic.example",
+      "phone": "800-555-0162",
+      "city": "New York",
+      "state": "NY",
+      "categories": "Children, Classroom",
+      "notes": ""
+    },
+    {
+      "supplier_id": 4,
+      "active": true,
+      "name": "HarperCollins",
+      "contact_name": "Chris Alvarez",
+      "email": "orders@harpercollins.example",
+      "phone": "212-555-0177",
+      "city": "New York",
+      "state": "NY",
+      "categories": "Fiction, Biography",
+      "notes": "Adult and young adult trade titles"
+    },
+    {
+      "supplier_id": 5,
+      "active": true,
+      "name": "Simon & Schuster",
+      "contact_name": "Riley Thompson",
+      "email": "wholesale@simonandschuster.example",
+      "phone": "212-555-0133",
+      "city": "New York",
+      "state": "NY",
+      "categories": "Fiction, Nonfiction",
+      "notes": ""
+    },
+    {
+      "supplier_id": 6,
+      "active": true,
+      "name": "Hachette Book Group",
+      "contact_name": "Morgan Ellis",
+      "email": "orders@hachette.example",
+      "phone": "212-555-0184",
+      "city": "New York",
+      "state": "NY",
+      "categories": "Trade, Paperback",
+      "notes": "Includes Little, Brown and Grand Central"
+    },
+    {
+      "supplier_id": 7,
+      "active": true,
+      "name": "Macmillan Publishers",
+      "contact_name": "Jamie Ortiz",
+      "email": "accounts@macmillan.example",
+      "phone": "646-555-0108",
+      "city": "New York",
+      "state": "NY",
+      "categories": "Fiction, Academic",
+      "notes": ""
+    },
+    {
+      "supplier_id": 8,
+      "active": true,
+      "name": "Baker & Taylor",
+      "contact_name": "Dana Brooks",
+      "email": "wholesale@baker-taylor.example",
+      "phone": "704-555-0155",
+      "city": "Charlotte",
+      "state": "NC",
+      "categories": "Wholesale, Library",
+      "notes": "Library and retail fulfillment"
+    },
+    {
+      "supplier_id": 9,
+      "active": true,
+      "name": "Chronicle Books",
+      "contact_name": "Lee Nguyen",
+      "email": "orders@chronicle.example",
+      "phone": "415-555-0101",
+      "city": "San Francisco",
+      "state": "CA",
+      "categories": "Art, Gift",
+      "notes": "West coast gift books"
+    },
+    {
+      "supplier_id": 10,
+      "active": true,
+      "name": "Independent Publishers Group",
+      "contact_name": "Casey Monroe",
+      "email": "sales@ipgbook.example",
+      "phone": "312-555-0126",
+      "city": "Chicago",
+      "state": "IL",
+      "categories": "Independent, Regional",
+      "notes": "Small-press distribution"
+    }
+  ]
+}
+
