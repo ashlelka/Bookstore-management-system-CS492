@@ -928,3 +928,229 @@ h1 { margin: 0; font-size: 1.45rem; }
 .purchase-order-locked p {
   margin: 0;
 }
+/* =========================================================
+   T2-007 Financial Dashboard
+   Developer: Gregory Krautkremer
+   Integrated into Flask by Ashley Lindamood
+   ========================================================= */
+
+.financial-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.financial-header {
+  margin-bottom: 28px;
+}
+
+.financial-header h1 {
+  margin-bottom: 6px;
+}
+
+.financial-header p {
+  margin-top: 0;
+}
+
+.financial-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.financial-metric {
+  padding: 20px;
+  border: 1px solid #d6d6d6;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.financial-metric strong {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.financial-metric span {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.financial-card {
+  padding: 22px;
+  margin: 24px 0;
+  border: 1px solid #d6d6d6;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.financial-table-wrapper {
+  overflow-x: auto;
+}
+
+.financial-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.financial-table th,
+.financial-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dddddd;
+  text-align: left;
+}
+
+.financial-chart {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.financial-chart img {
+  display: block;
+  width: 100%;
+  max-width: 1000px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.profit-chart {
+  display: grid;
+  gap: 14px;
+}
+
+.profit-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 90px;
+  gap: 12px;
+  align-items: center;
+}
+
+.profit-label {
+  font-weight: 600;
+}
+
+.profit-bar-area {
+  height: 24px;
+  border-radius: 5px;
+  background: #eeeeee;
+  overflow: hidden;
+}
+
+.profit-bar {
+  height: 100%;
+  background: #555555;
+  border-radius: 5px;
+}
+
+.profit-value {
+  text-align: right;
+  font-weight: 600;
+}
+
+.financial-note {
+  padding: 16px;
+  margin: 20px 0;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
+}
+
+.financial-note p {
+  margin-bottom: 0;
+}
+
+.financial-actions {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.financial-actions a {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+@media (max-width: 700px) {
+
+  .financial-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .profit-row {
+    grid-template-columns: 1fr;
+  }
+
+  .profit-value {
+    text-align: left;
+  }
+
+  .financial-actions {
+    flex-direction: column;
+  }
+}
+/* =========================================================
+   Management Navigation Menu
+   UI Integration: Ashley Lindamood
+   ========================================================= */
+
+.management-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.management-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.menu-arrow {
+  font-size: 0.8rem;
+}
+
+.management-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid #d6d6d6;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.management-dropdown.show {
+  display: block;
+}
+
+.management-dropdown a {
+  display: block;
+  padding: 11px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  color: #163f32;
+  font-weight: 600;
+}
+
+.management-dropdown a:hover {
+  background: #f2f2f2;
+  color:#163f32;
+}
+
+@media (max-width: 700px) {
+
+  .top-actions {
+    flex-wrap: wrap;
+  }
+
+  .management-dropdown {
+    right: auto;
+    left: 0;
+  }
+}

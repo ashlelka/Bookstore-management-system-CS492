@@ -1,14 +1,20 @@
 from copy import deepcopy
 from datetime import datetime
 from http import server
-import subprocess
-import sys
+
 from email.message import EmailMessage
 import os
+import io
+import csv
+import matplotlib 
+matplotlib.use("Agg")
+from matplotlib import dates
+import matplotlib.pyplot as plt
+
 import smtplib
 from pathlib import Path
 from securelogin import auth_bp
-from flask import Flask, redirect, render_template, request, session, url_for, Response
+from flask import Flask, redirect, render_template, request, session, url_for, Response, send_file
 from datetime import datetime, timedelta, timezone
 from tax_rates import STATES, STATES_BY_CODE, load_tax_rates, state_rate
 
@@ -482,7 +488,12 @@ def require_staff():
     if not current_user():
         return redirect(url_for("auth.login"))
 
+# =========================================================
 # T2-007 - Financial Dashboard
+# Developer: Gregory Krautkremer
+# Flask Integration
+# =========================================================
+
 @app.get("/financial-dashboard")
 def financial_dashboard():
 
@@ -494,22 +505,396 @@ def financial_dashboard():
     if not can_manage_users():
         return redirect(url_for("index"))
 
-    dashboard_file = (
-        Path(__file__).resolve().parent
-        / "financials_dashboard.py"
+    # load completed sales from existing BMS database
+    sales = load_sales()
+
+    financial_records = []
+
+    for sale in sales:
+
+        sale_date = sale.get(
+            "date",
+            sale.get(
+                "datetime",
+                sale.get(
+                    "timestamp",
+                    "Unknown"
+                )
+            )
+        )
+
+        revenue = sale.get("total", 0)
+
+        try:
+            revenue = float(revenue)
+        except (TypeError, ValueError):
+            revenue = 0.0
+
+        # expenses are not currently stored in BMS
+        expenses = 0.0
+        profit = revenue - expenses
+
+        financial_records.append({
+            "date": sale_date,
+            "sale_id": sale.get(
+                "sale_id",
+                sale.get("id", "")
+            ),
+            "revenue": round(revenue, 2),
+            "expenses": round(expenses, 2),
+            "profit": round(profit, 2),
+        })
+
+    total_revenue = sum(
+        record["revenue"]
+        for record in financial_records
     )
 
-    # start Greg's Streamlit financial dashboard
-    subprocess.Popen([
-        sys.executable,
-        "-m",
-        "streamlit",
-        "run",
-        str(dashboard_file),
-        "--server.headless=true"
+    total_expenses = sum(
+        record["expenses"]
+        for record in financial_records
+    )
+
+    total_profit = sum(
+        record["profit"]
+        for record in financial_records
+    )
+
+    return render_template(
+        "financial_dashboard.html",
+        records=financial_records,
+        total_revenue=total_revenue,
+        total_expenses=total_expenses,
+        total_profit=total_profit,
+    )
+# =========================================================
+# T2-007 - Financial Dashboard Chart
+# Developer: Gregory Krautkremer
+# Integrated into Flask by Ashley Lindamood
+# =========================================================
+
+@app.get("/financial-dashboard/chart")
+def financial_dashboard_chart():
+
+    # user must be logged in
+    if "username" not in session:
+        return redirect(url_for("auth.login"))
+
+    # only Admin and Manager can view financial information
+    if not can_manage_users():
+        return redirect(url_for("index"))
+
+    sales = load_sales()
+
+    dates = []
+    revenues = []
+    expenses = []
+    profits = []
+
+    for sale in sales:
+
+        # Get sale date from existing sales record
+        sale_date = sale.get(
+            "date",
+            sale.get(
+                "datetime",
+                sale.get(
+                    "timestamp",
+                    "Unknown"
+                )
+            )
+        )
+
+        # Get sale revenue
+        revenue = sale.get("total", 0)
+
+        try:
+            revenue = float(revenue)
+        except (TypeError, ValueError):
+            revenue = 0.0
+
+        expense = 0.0
+        profit = revenue - expense
+
+        # Format date for chart display
+        try:
+            parsed_date = datetime.fromisoformat(
+                str(sale_date)
+            )
+
+            formatted_date = parsed_date.strftime(
+                "%b %d, %I:%M %p"
+            )
+
+        except (ValueError, TypeError):
+            formatted_date = str(sale_date)
+
+        # IMPORTANT:
+        # These must stay INSIDE the for-sale loop.
+        dates.append(formatted_date)
+        revenues.append(revenue)
+        expenses.append(expense)
+        profits.append(profit)
+
+    # Create Greg's financial performance chart
+    fig, ax = plt.subplots(
+        figsize=(10, 5)
+    )
+
+    ax.plot(
+        dates,
+        revenues,
+        label="Revenue",
+        marker="o"
+    )
+
+    ax.plot(
+        dates,
+        expenses,
+        label="Expenses",
+        marker="s"
+    )
+
+    ax.plot(
+        dates,
+        profits,
+        label="Profit",
+        marker="^"
+    )
+
+    ax.set_xlabel("Sale Date")
+    ax.set_ylabel("Amount ($)")
+
+    ax.set_title(
+        "Financial Performance Over Time"
+    )
+
+    ax.legend()
+
+    plt.xticks(
+        rotation=20,
+        ha="right"
+    )
+
+    plt.tight_layout()
+
+    # Save chart to memory for Flask
+    image = io.BytesIO()
+
+    fig.savefig(
+        image,
+        format="png"
+    )
+
+    plt.close(fig)
+
+    image.seek(0)
+
+    return send_file(
+        image,
+        mimetype="image/png"
+    )
+# =========================================================
+# T2-007 - Profit by Sale Chart
+# Developer: Gregory Krautkremer
+# Integrated into Flask by Ashley Lindamood
+# =========================================================
+
+@app.get("/financial-dashboard/profit-chart")
+def financial_profit_chart():
+
+    # user must be logged in
+    if "username" not in session:
+        return redirect(url_for("auth.login"))
+
+    # only Admin and Manager can view financial information
+    if not can_manage_users():
+        return redirect(url_for("index"))
+
+    sales = load_sales()
+
+    sale_labels = []
+    profits = []
+
+    for sale in sales:
+
+        # Get sale ID
+        sale_id = sale.get(
+            "sale_id",
+            sale.get("id", "Unknown")
+        )
+
+        # Get sale date
+        sale_date = sale.get(
+            "date",
+            sale.get(
+                "datetime",
+                sale.get(
+                    "timestamp",
+                    "Unknown"
+                )
+            )
+        )
+
+        # Format sale date
+        try:
+            parsed_date = datetime.fromisoformat(
+                str(sale_date)
+            )
+
+            formatted_date = parsed_date.strftime(
+                "%b %d, %I:%M %p"
+            )
+
+        except (ValueError, TypeError):
+            formatted_date = str(sale_date)
+
+        # Get revenue
+        revenue = sale.get("total", 0)
+
+        try:
+            revenue = float(revenue)
+        except (TypeError, ValueError):
+            revenue = 0.0
+
+        # Expenses are not currently stored
+        expenses = 0.0
+        profit = revenue - expenses
+
+        # Sale ID + date keeps duplicate IDs distinguishable
+        sale_labels.append(
+            str(sale_id)
+            + "\n"
+            + formatted_date
+        )
+
+        profits.append(profit)
+
+    # Create Profit by Sale chart
+    fig, ax = plt.subplots(
+        figsize=(10, 5)
+    )
+
+    ax.bar(
+        sale_labels,
+        profits
+    )
+
+    ax.set_xlabel("Sale")
+    ax.set_ylabel("Profit ($)")
+    ax.set_title("Profit by Sale")
+
+    # Display dollar amount above each bar
+    for index, profit in enumerate(profits):
+
+        ax.text(
+            index,
+            profit,
+            f"${profit:.2f}",
+            ha="center",
+            va="bottom"
+        )
+
+    plt.xticks(
+        rotation=15,
+        ha="right"
+    )
+
+    plt.tight_layout()
+
+    # Save chart to memory
+    image = io.BytesIO()
+
+    fig.savefig(
+        image,
+        format="png"
+    )
+
+    plt.close(fig)
+
+    image.seek(0)
+
+    return send_file(
+        image,
+        mimetype="image/png"
+    )
+# =========================================================
+# T2-007 - Financial CSV Export
+# Developer: Gregory Krautkremer
+# Integrated into Flask by Ashley Lindamood
+# =========================================================
+
+@app.get("/financial-dashboard/export")
+def export_financial_data():
+
+    # user must be logged in
+    if "username" not in session:
+        return redirect(url_for("auth.login"))
+
+    # only Admin and Manager can export financial data
+    if not can_manage_users():
+        return redirect(url_for("index"))
+
+    sales = load_sales()
+
+    output = io.StringIO()
+
+    writer = csv.writer(output)
+
+    writer.writerow([
+        "Date",
+        "Sale ID",
+        "Revenue",
+        "Expenses",
+        "Profit",
     ])
 
-    return redirect("http://localhost:8501")
+    for sale in sales:
+
+        sale_date = sale.get(
+            "date",
+            sale.get(
+                "datetime",
+                sale.get("timestamp", "Unknown")
+            )
+        )
+
+        sale_id = sale.get(
+            "sale_id",
+            sale.get("id", "")
+        )
+
+        revenue = sale.get("total", 0)
+
+        try:
+            revenue = float(revenue)
+        except (TypeError, ValueError):
+            revenue = 0.0
+
+        expenses = 0.0
+        profit = revenue - expenses
+
+        writer.writerow([
+            sale_date,
+            sale_id,
+            f"{revenue:.2f}",
+            f"{expenses:.2f}",
+            f"{profit:.2f}",
+        ])
+
+    csv_data = output.getvalue()
+
+    output.close()
+
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition":
+                "attachment; "
+                "filename=financial_data.csv"
+        },
+    )
 # T1-006: sales screen (catalog + ticket)
 
 @app.route("/")
