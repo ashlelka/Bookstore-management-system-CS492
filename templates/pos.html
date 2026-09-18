@@ -46,22 +46,27 @@ Sales screen: catalog, ticket, tax by state, checkout
 
     {% if can_manage_users %}
 
-<a href="{{ url_for('user_admin') }}" class="manage-btn">
-  Manage Employees
-</a>
+    <a href="{{ url_for('user_admin') }}" class="manage-btn">
+      Manage Employees
+    </a>
 
-<!-- T2-007 Financial Dashboard -->
-<a href="http://localhost:8501"
-   target="_blank"
-   class="manage-btn">
-  Financial Dashboard
-</a>
+    <!-- T2-002 Supplier Management -->
+    <a href="{{ url_for('supplier_admin') }}" class="manage-btn">
+      Manage Suppliers
+    </a>
 
-{% endif %}
+    <!-- T2-007 Financial Dashboard -->
+    <a href="http://localhost:8501"
+       target="_blank"
+       class="manage-btn">
+      Financial Dashboard
+    </a>
 
-<a href="{{ url_for('auth.logout') }}" class="logout-btn">
-  Logout
-</a>
+    {% endif %}
+
+    <a href="{{ url_for('auth.logout') }}" class="logout-btn">
+      Logout
+    </a>
 
   </div>
 

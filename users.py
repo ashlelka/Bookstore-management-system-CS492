@@ -20,14 +20,15 @@ from user_management import load_users as load_employee_file
 OVERRIDES_PATH = Path(__file__).resolve().parent / "user_overrides.json"
 
 ROLES = {
-    "Admin": ["use_pos", "manage_users"],
-    "Manager": ["use_pos", "manage_users"],
+    "Admin": ["use_pos", "manage_users", "manage_suppliers"],
+    "Manager": ["use_pos", "manage_users", "manage_suppliers"],
     "Cashier": ["use_pos"],
 }
 
 PERMISSIONS = [
     {"id": "use_pos", "label": "Use the sales register"},
     {"id": "manage_users", "label": "Manage users, roles, and locks"},
+    {"id": "manage_suppliers", "label": "Manage suppliers"},
 ]
 
 USERS = []

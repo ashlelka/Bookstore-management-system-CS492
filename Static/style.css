@@ -567,3 +567,162 @@ h1 { margin: 0; font-size: 1.45rem; }
     display: none;
   }
 }
+/* =========================================================
+   T2-002 Supplier Management
+   Quick styling to match the Bookstore Management System
+   ========================================================= */
+
+.supplier-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.supplier-page h1 {
+  margin-bottom: 6px;
+}
+
+.supplier-page h2 {
+  margin-top: 28px;
+  margin-bottom: 16px;
+}
+
+/* Add Supplier form */
+.supplier-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 22px;
+  margin-bottom: 30px;
+  border: 1px solid #d6d6d6;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.supplier-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.supplier-form input,
+.supplier-form select,
+.supplier-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #b8b8b8;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.supplier-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.supplier-form button {
+  width: fit-content;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Supplier records */
+.supplier-list {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(300px, 1fr)
+  );
+  gap: 18px;
+}
+
+.supplier-card {
+  padding: 18px;
+  border: 1px solid #d6d6d6;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.supplier-card h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.supplier-card p {
+  margin: 7px 0;
+}
+/* Individual supplier cards */
+
+.supplier-item {
+  padding: 18px;
+  border: 1px solid #d6d6d6;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.supplier-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.supplier-title strong {
+  font-size: 1.05rem;
+}
+
+.supplier-title span {
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.supplier-details p {
+  margin: 7px 0;
+  line-height: 1.4;
+}
+/* Status messages */
+.supplier-notice {
+  padding: 12px;
+  margin: 15px 0;
+  border-radius: 6px;
+  background: #e8f5e9;
+}
+
+.supplier-error {
+  padding: 12px;
+  margin: 15px 0;
+  border-radius: 6px;
+  background: #fdecec;
+}
+
+/* Navigation */
+.supplier-actions {
+  margin-bottom: 20px;
+}
+
+.supplier-actions a {
+  display: inline-block;
+  padding: 9px 15px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+/* Smaller screens */
+@media (max-width: 700px) {
+  .supplier-form {
+    grid-template-columns: 1fr;
+  }
+
+  .supplier-page {
+    padding: 16px;
+  }
+}

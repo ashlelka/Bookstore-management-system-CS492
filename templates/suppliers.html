@@ -1,0 +1,280 @@
+<!--
+Bookstore Management System
+Sprint 2 - Supplier Management
+Supplier maintenance interface
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Supplier Management</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+
+<div class="supplier-page">
+
+    <div class="supplier-header">
+        <h1>Supplier Management</h1>
+        <p>Ana's Anomalous Anthologies</p>
+    </div>
+
+
+    <!-- Status Messages -->
+
+    {% if notice %}
+        <div class="supplier-notice">
+            {{ notice }}
+        </div>
+    {% endif %}
+
+    {% if error %}
+        <div class="supplier-error">
+            {{ error }}
+        </div>
+    {% endif %}
+
+
+    <!-- Add Supplier Form -->
+
+    <div class="supplier-card">
+
+        <h2>Add Supplier</h2>
+
+        <form
+            action="{{ url_for('supplier_admin') }}"
+            method="post"
+            class="supplier-form"
+        >
+
+            <label for="name">Company Name</label>
+
+            <input
+                type="text"
+                id="name"
+                name="name"
+                value="{{ form.get('name', '') }}"
+                required
+            >
+
+
+            <label for="contact_name">Contact Name</label>
+
+            <input
+                type="text"
+                id="contact_name"
+                name="contact_name"
+                value="{{ form.get('contact_name', '') }}"
+            >
+
+
+            <label for="email">Email</label>
+
+            <input
+                type="email"
+                id="email"
+                name="email"
+                value="{{ form.get('email', '') }}"
+            >
+
+
+            <label for="phone">Phone</label>
+
+            <input
+                type="text"
+                id="phone"
+                name="phone"
+                value="{{ form.get('phone', '') }}"
+            >
+
+
+            <label for="city">City</label>
+
+            <input
+                type="text"
+                id="city"
+                name="city"
+                value="{{ form.get('city', '') }}"
+            >
+
+
+            <label for="state">State</label>
+
+            <select id="state" name="state">
+
+                <option value="">Select State</option>
+
+                {% for state in states %}
+                    <option
+                        value="{{ state }}"
+                        {% if form.get('state') == state %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ state }}
+                    </option>
+                {% endfor %}
+
+            </select>
+
+
+            <label for="categories">Categories</label>
+
+            <input
+                type="text"
+                id="categories"
+                name="categories"
+                value="{{ form.get('categories', '') }}"
+                placeholder="Fiction, Textbooks, Art"
+            >
+
+
+            <label for="notes">Notes</label>
+
+            <textarea
+                id="notes"
+                name="notes"
+                rows="4"
+            >{{ form.get('notes', '') }}</textarea>
+
+
+            <button
+                type="submit"
+                class="primary"
+            >
+                Add Supplier
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- Existing Suppliers -->
+
+    <div class="supplier-card">
+
+        <h2>Current Suppliers</h2>
+
+        {% if suppliers %}
+
+            <div class="supplier-list">
+
+                {% for supplier in suppliers %}
+
+                    <div class="supplier-item">
+
+                        <div class="supplier-title">
+
+                            <strong>
+                                {{ supplier.get('name', 'Supplier') }}
+                            </strong>
+
+                            <span>
+                                ID:
+                                {{ supplier.get('supplier_id', '') }}
+                            </span>
+
+                        </div>
+
+
+                        <div class="supplier-details">
+
+                            {% if supplier.get('contact_name') %}
+                                <p>
+                                    <strong>Contact:</strong>
+                                    {{ supplier.get('contact_name') }}
+                                </p>
+                            {% endif %}
+
+
+                            {% if supplier.get('email') %}
+                                <p>
+                                    <strong>Email:</strong>
+                                    {{ supplier.get('email') }}
+                                </p>
+                            {% endif %}
+
+
+                            {% if supplier.get('phone') %}
+                                <p>
+                                    <strong>Phone:</strong>
+                                    {{ supplier.get('phone') }}
+                                </p>
+                            {% endif %}
+
+
+                            {% if supplier.get('city') or supplier.get('state') %}
+                                <p>
+                                    <strong>Location:</strong>
+
+                                    {{ supplier.get('city', '') }}
+
+                                    {% if supplier.get('city')
+                                          and supplier.get('state') %}
+                                        ,
+                                    {% endif %}
+
+                                    {{ supplier.get('state', '') }}
+                                </p>
+                            {% endif %}
+
+
+                            {% if supplier.get('categories') %}
+                                <p>
+                                    <strong>Categories:</strong>
+                                    {{ supplier.get('categories') }}
+                                </p>
+                            {% endif %}
+
+
+                            {% if supplier.get('notes') %}
+                                <p>
+                                    <strong>Notes:</strong>
+                                    {{ supplier.get('notes') }}
+                                </p>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <p>No suppliers are currently available.</p>
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="supplier-actions">
+
+        <a
+            href="{{ url_for('index') }}"
+            class="ghost"
+        >
+            Back to Register
+            
+        </a>
+
+    </div>
+
+</div>
+
+
+</body>
+</html>
