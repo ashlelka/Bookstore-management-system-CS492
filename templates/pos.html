@@ -1,8 +1,9 @@
 <!--
 Bookstore Management System
-Sprint 1 - T1-006
+Sprint 1 - T1-006 / T1-010
 Developer: Alexis Silva
 Sales screen: catalog, ticket, tax by state, checkout
+Staff bar / Users link: T1-010 roles and lock
 
 Management Navigation Integration:
 Ashley Lindamood
@@ -35,6 +36,14 @@ Ashley Lindamood
   <div>
     <h1>Bookstore Management System</h1>
     <p class="sub">Point of sale</p>
+    {% if current_user and not can_use_pos %}
+
+      <p class="stock low">
+        This account cannot use the register.
+        An admin can change roles on the Users page.
+      </p>
+
+    {% endif %}
   </div>
 
 
@@ -272,7 +281,7 @@ Ashley Lindamood
           <button
             class="tile"
             type="submit"
-            {% if p.out_of_stock %}disabled{% endif %}
+            {% if p.out_of_stock or not can_use_pos %}disabled{% endif %}
           >
 
             <div class="name">
