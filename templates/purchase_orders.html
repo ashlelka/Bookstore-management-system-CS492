@@ -1,0 +1,365 @@
+<!--
+Bookstore Management System
+Sprint 2 - T2-004
+Developer: Ashley Lindamood
+Purchase Order Management
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Purchase Order Management</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+
+<div class="purchase-order-page">
+
+    <div class="purchase-order-header">
+        <h1>Purchase Order Management</h1>
+        <p>Ana's Anomalous Anthologies</p>
+    </div>
+
+
+    <!-- Status Messages -->
+
+    {% if notice %}
+        <div class="supplier-notice">
+            {{ notice }}
+        </div>
+    {% endif %}
+
+    {% if error %}
+        <div class="supplier-error">
+            {{ error }}
+        </div>
+    {% endif %}
+
+
+    <!-- Create Purchase Order -->
+
+    <div class="purchase-order-card">
+
+        <h2>Create Purchase Order</h2>
+
+        <form
+            action="{{ url_for('create_purchase_order_route') }}"
+            method="post"
+            class="purchase-order-form"
+        >
+
+            <!-- Supplier -->
+
+            <label for="supplier_id">
+                Supplier
+            </label>
+
+            <select
+                id="supplier_id"
+                name="supplier_id"
+                required
+            >
+
+                <option value="">
+                    Select Supplier
+                </option>
+
+                {% for supplier in suppliers %}
+
+                    {% if supplier.get('active', True) %}
+
+                        <option
+                            value="{{ supplier.get('supplier_id') }}"
+                        >
+                            {{ supplier.get('name') }}
+                        </option>
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </select>
+
+
+            <!-- Book -->
+
+            <label for="book_id">
+                Book
+            </label>
+
+            <select
+                id="book_id"
+                name="book_id"
+                required
+            >
+
+                <option value="">
+                    Select Book
+                </option>
+
+                {% for book in books %}
+
+                    <option
+                        value="{{ book.get('book_id') }}"
+                    >
+                        {{ book.get('title') }}
+                        -
+                        {{ book.get('author') }}
+                        (Stock: {{ book.get('quantity', 0) }})
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <!-- Quantity -->
+
+            <label for="quantity">
+                Order Quantity
+            </label>
+
+            <input
+                type="number"
+                id="quantity"
+                name="quantity"
+                min="1"
+                required
+            >
+
+
+            <!-- Notes -->
+
+            <label for="notes">
+                Notes
+            </label>
+
+            <textarea
+                id="notes"
+                name="notes"
+                rows="4"
+                placeholder="Optional purchase order notes"
+            ></textarea>
+
+
+            <button
+                type="submit"
+                class="primary"
+            >
+                Create Purchase Order
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <!-- Purchase Order History -->
+
+    <div class="purchase-order-card">
+
+        <h2>Purchase Order History</h2>
+
+        {% if purchase_orders %}
+
+            <div class="purchase-order-list">
+
+                {% for order in purchase_orders|reverse %}
+
+                    <div class="purchase-order-item">
+
+                        <div class="purchase-order-title">
+
+                            <strong>
+                                PO #{{ order.get('purchase_order_id') }}
+                            </strong>
+
+                            <span>
+                                {{ order.get('status', 'Pending') }}
+                            </span>
+
+                        </div>
+
+
+                        <div class="purchase-order-details">
+
+                            <p>
+                                <strong>Supplier:</strong>
+                                {{ order.get('supplier_name') }}
+                            </p>
+
+                            <p>
+                                <strong>Created By:</strong>
+                                {{ order.get('created_by') }}
+                            </p>
+
+                            <p>
+                                <strong>Order Date:</strong>
+                                {{ order.get('order_date') }}
+                            </p>
+
+
+                            <!-- Ordered Books -->
+
+                            <div class="purchase-order-books">
+
+                                <strong>Books:</strong>
+
+                                {% for item in order.get('items', []) %}
+
+                                    <p>
+                                        {{ item.get('title') }}
+                                        &times;
+                                        {{ item.get('quantity') }}
+                                    </p>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- Notes -->
+
+                            {% if order.get('notes') %}
+
+                                <p>
+                                    <strong>Notes:</strong>
+                                    {{ order.get('notes') }}
+                                </p>
+
+                            {% endif %}
+
+
+                            <!-- Status Update -->
+
+                            {% if order.get('status')
+                                  not in ['Closed', 'Cancelled'] %}
+
+                                <!-- Active purchase orders -->
+                                <form
+                                    method="post"
+                                    action="{{
+                                        url_for(
+                                            'change_purchase_order_status',
+                                            purchase_order_id=order.get(
+                                                'purchase_order_id'
+                                            )
+                                        )
+                                    }}"
+                                    class="purchase-order-status"
+                                >
+
+                                    <label>
+                                        Status
+                                    </label>
+
+                                    <select name="status">
+
+                                        {% for status in [
+                                            'Pending',
+                                            'Ordered',
+                                            'Received',
+                                            'Closed',
+                                            'Cancelled'
+                                        ] %}
+
+                                            <option
+                                                value="{{ status }}"
+                                                {% if order.get('status')
+                                                      == status %}
+                                                    selected
+                                                {% endif %}
+                                            >
+                                                {{ status }}
+                                            </option>
+
+                                        {% endfor %}
+
+                                    </select>
+
+                                    <button
+                                        type="submit"
+                                        class="ghost"
+                                    >
+                                        Update Status
+                                    </button>
+
+                                </form>
+
+
+                            {% else %}
+
+                                <!-- Finalized purchase orders -->
+
+                                <div class="purchase-order-locked">
+
+                                    <strong>
+                                        Order {{ order.get('status') }}
+                                    </strong>
+
+                                    <p>
+                                        This purchase order is finalized
+                                        and can no longer be modified.
+                                    </p>
+
+                                </div>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+
+        {% else %}
+
+            <p>
+                No purchase orders have been created yet.
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- Navigation -->
+
+    <div class="purchase-order-actions">
+
+        <a
+            href="{{ url_for('supplier_admin') }}"
+            class="ghost"
+        >
+            Manage Suppliers
+        </a>
+
+        <a
+            href="{{ url_for('index') }}"
+            class="ghost"
+        >
+            Back to Register
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

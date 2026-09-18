@@ -26,6 +26,12 @@ from database import (
     connection_status
 )
 from suppliers import add_supplier, load_suppliers
+from purchase_orders import (
+    create_purchase_order,
+    find_purchase_order,
+    load_purchase_orders,
+    update_purchase_order_status,
+)
 from users import (
     PERMISSIONS,
     ROLES,
@@ -884,8 +890,132 @@ def create_supplier():
             notice=None,
             error=result,
         )
+    
     return redirect(url_for("supplier_admin", notice="Added supplier " + str(result) + "."))
+# =========================================================
+# Sprint 2 - T2-004
+# Developer: Ashley Lindamood
+# Purchase Order Management
+# =========================================================
 
+
+@app.get("/purchase-orders")
+def purchase_order_admin():
+    """Display the purchase order management screen."""
+
+    if not can_manage_suppliers():
+        return redirect(url_for("index"))
+
+    return render_template(
+        "purchase_orders.html",
+        suppliers=load_suppliers(),
+        books=load_books(),
+        purchase_orders=load_purchase_orders(),
+        notice=request.args.get("notice"),
+        error=None,
+    )
+
+
+@app.post("/purchase-orders")
+def create_purchase_order_route():
+    """Create a purchase order from the management screen."""
+
+    if not can_manage_suppliers():
+        return redirect(url_for("index"))
+
+    supplier_id = request.form.get("supplier_id", "").strip()
+    book_id = request.form.get("book_id", "").strip()
+    quantity = request.form.get("quantity", "").strip()
+    notes = request.form.get("notes", "").strip()
+
+    # Find the selected book in Ashley's inventory.
+    selected_book = None
+
+    for book in load_books():
+        if str(book.get("book_id")) == str(book_id):
+            selected_book = book
+            break
+
+    if selected_book is None:
+        return render_template(
+            "purchase_orders.html",
+            suppliers=load_suppliers(),
+            books=load_books(),
+            purchase_orders=load_purchase_orders(),
+            notice=None,
+            error="Please select a valid book.",
+        )
+
+    # Get the employee who created the purchase order.
+    created_by = session.get("username", "Unknown")
+
+    items = [
+        {
+            "book_id": selected_book.get("book_id"),
+            "title": selected_book.get("title"),
+            "quantity": quantity,
+        }
+    ]
+
+    ok, result = create_purchase_order(
+        supplier_id=supplier_id,
+        items=items,
+        created_by=created_by,
+        notes=notes,
+    )
+
+    if not ok:
+        return render_template(
+            "purchase_orders.html",
+            suppliers=load_suppliers(),
+            books=load_books(),
+            purchase_orders=load_purchase_orders(),
+            notice=None,
+            error=result,
+        )
+
+    return redirect(
+        url_for(
+            "purchase_order_admin",
+            notice="Created purchase order "
+            + str(result)
+            + ".",
+        )
+    )
+
+
+@app.post("/purchase-orders/<int:purchase_order_id>/status")
+def change_purchase_order_status(purchase_order_id):
+    """Update the status of an existing purchase order."""
+
+    if not can_manage_suppliers():
+        return redirect(url_for("index"))
+
+    new_status = request.form.get("status", "").strip()
+
+    ok, message = update_purchase_order_status(
+        purchase_order_id,
+        new_status,
+    )
+
+    if not ok:
+        return redirect(
+            url_for(
+                "purchase_order_admin",
+                notice=message,
+            )
+        )
+
+    return redirect(
+        url_for(
+            "purchase_order_admin",
+            notice="Purchase order "
+            + str(purchase_order_id)
+            + " updated to "
+            + new_status
+            + ".",
+        )
+    )
 
 # T1-007: test a sample sale
 

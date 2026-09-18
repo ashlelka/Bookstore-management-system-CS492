@@ -726,3 +726,205 @@ h1 { margin: 0; font-size: 1.45rem; }
     padding: 16px;
   }
 }
+/* =========================================================
+   T2-004 Purchase Order Management
+   Developer: Ashley Lindamood
+   ========================================================= */
+
+.purchase-order-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.purchase-order-header h1 {
+  margin-bottom: 6px;
+}
+
+.purchase-order-header p {
+  margin-top: 0;
+}
+
+.purchase-order-page h2 {
+  margin-top: 10px;
+  margin-bottom: 18px;
+}
+
+/* Main sections */
+
+.purchase-order-card {
+  padding: 22px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #d6d6d6;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+/* Create Purchase Order form */
+
+.purchase-order-form {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.purchase-order-form label {
+  font-weight: 600;
+}
+
+.purchase-order-form input,
+.purchase-order-form select,
+.purchase-order-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #b8b8b8;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.purchase-order-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.purchase-order-form button {
+  grid-column: 2;
+  width: fit-content;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Purchase Order History */
+
+.purchase-order-list {
+  display: grid;
+  gap: 18px;
+}
+
+.purchase-order-item {
+  padding: 18px;
+  border: 1px solid #d6d6d6;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.purchase-order-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.purchase-order-title strong {
+  font-size: 1.1rem;
+}
+
+.purchase-order-title span {
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.purchase-order-details p {
+  margin: 7px 0;
+  line-height: 1.4;
+}
+
+.purchase-order-books {
+  margin: 14px 0;
+  padding: 12px;
+  border-radius: 6px;
+  background: #f7f7f7;
+}
+
+.purchase-order-books p {
+  margin: 6px 0;
+}
+
+/* Status controls */
+
+.purchase-order-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.purchase-order-status label {
+  font-weight: 600;
+}
+
+.purchase-order-status select {
+  padding: 8px;
+  border: 1px solid #b8b8b8;
+  border-radius: 6px;
+}
+
+.purchase-order-status button {
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+/* Bottom navigation */
+
+.purchase-order-actions {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.purchase-order-actions a {
+  display: inline-block;
+  padding: 9px 15px;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+/* Smaller screens */
+
+@media (max-width: 700px) {
+  .purchase-order-page {
+    padding: 16px;
+  }
+
+  .purchase-order-form {
+    grid-template-columns: 1fr;
+  }
+
+  .purchase-order-form button {
+    grid-column: 1;
+  }
+
+  .purchase-order-status {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+/* Finalized Purchase Orders */
+
+.purchase-order-locked {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #d6d6d6;
+  border-radius: 6px;
+  background: #f7f7f7;
+}
+
+.purchase-order-locked strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.purchase-order-locked p {
+  margin: 0;
+}
