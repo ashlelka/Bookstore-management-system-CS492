@@ -1,3 +1,83 @@
-{% extends 'staff_base.html' %}{% block content %}<h1>{{ customer.first_name }} {{ customer.last_name }}</h1>
-<a href="{{ url_for('staff.customer_form', customer_id=customer.customer_id) }}">Edit customer</a>
-<dl>{% for key, label in [('customer_id','Customer ID'),('email','Email'),('phone','Phone'),('address','Address'),('loyalty_points','Loyalty points'),('created_at','Created'),('updated_at','Updated')] %}<dt>{{ label }}</dt><dd>{{ customer.get(key, '') }}</dd>{% endfor %}</dl>{% endblock %}
+{% extends 'staff_base.html' %}
+
+{% block title %}
+Customer Profile
+{% endblock %}
+
+{% block content %}
+
+<h1>
+  {{ customer.first_name }} {{ customer.last_name }}
+</h1>
+
+
+<p>
+  <a href="{{ url_for(
+    'staff.customer_form',
+    customer_id=customer.customer_id
+  ) }}">
+    Edit customer
+  </a>
+</p>
+
+
+<dl>
+
+  {% for key, label in [
+    ('customer_id', 'Customer ID'),
+    ('email', 'Email'),
+    ('phone', 'Phone'),
+    ('address', 'Address'),
+    ('loyalty_points', 'Loyalty points'),
+    ('created_at', 'Created'),
+    ('updated_at', 'Updated')
+  ] %}
+
+    <dt>
+      {{ label }}
+    </dt>
+
+    <dd>
+      {{ customer.get(key, '') }}
+    </dd>
+
+  {% endfor %}
+
+</dl>
+
+
+<hr>
+
+
+<h2>Delete Customer</h2>
+
+<p>
+  Deleting this customer will permanently remove the profile.
+</p>
+
+
+<form
+  method="post"
+  action="{{ url_for(
+    'staff.customer_delete',
+    customer_id=customer.customer_id
+  ) }}"
+  onsubmit="return confirm('Are you sure you want to delete this customer?');"
+>
+
+  <input
+    type="hidden"
+    name="csrf_token"
+    value="{{ session.customer_csrf }}"
+  >
+
+  <button
+    type="submit"
+    class="danger"
+  >
+    Delete Customer
+  </button>
+
+</form>
+
+{% endblock %}

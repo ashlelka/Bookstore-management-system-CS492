@@ -40,8 +40,63 @@ def load_customers():
 def get_customer(customer_id):
     return next((row for row in load_customers()
                  if row["customer_id"] == customer_id), None)
+#deletes customer from the application and the customers.json file
+def delete_customer(customer_id):
+    """Delete a customer by customer ID."""
+    with _write_lock:
+        records = load_customers()
 
+        customer = next(
+            (row for row in records if row["customer_id"] == customer_id),
+            None,
+        )
 
+        if customer is None:
+            raise LookupError("Customer not found.")
+
+        updated_records = [
+            row
+            for row in records
+            if row["customer_id"] != customer_id
+        ]
+
+        temporary = None
+
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=CUSTOMERS_PATH.parent,
+                prefix=".customers-",
+                suffix=".tmp",
+                delete=False,
+            ) as handle:
+
+                temporary = Path(handle.name)
+
+                json.dump(
+                    updated_records,
+                    handle,
+                    indent=2,
+                    ensure_ascii=False,
+                )
+
+                handle.flush()
+                os.fsync(handle.fileno())
+
+            temporary.replace(CUSTOMERS_PATH)
+
+        except OSError as exc:
+            raise CustomerStoreError(
+                "Customer could not be deleted. No data was changed."
+            ) from exc
+
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
+
+        return customer
+    
 def save_customer(fields, customer_id=None, expected_updated_at=None):
     # TT: Serialize reads and writes within this application process.
     with _write_lock:

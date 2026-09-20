@@ -10,7 +10,13 @@ import database
 
 class ReportDataError(Exception):
     """Report totals cannot be trusted until the source data is repaired."""
-
+def format_timestamp(timestamp):
+    """Format an ISO timestamp for display in sales reports."""
+    try:
+        dt = datetime.fromisoformat(timestamp)
+        return dt.strftime("%m/%d/%Y %I:%M %p")
+    except (ValueError, TypeError):
+        return timestamp
 
 def report_sales():
     # TT: Read the existing sales store without changing it or hiding corrupt JSON.
@@ -69,20 +75,65 @@ def generate_report(period, anchor):
             "count": len(rows), **{key: sum((row[key] for row in rows), Decimal("0.00"))
                                     for key in ("subtotal", "tax", "total")}}
 
-
+def format_report_timestamp(timestamp):
+    """Format an ISO timestamp for CSV report exports."""
+    try:
+        dt = datetime.fromisoformat(timestamp)
+        return dt.strftime("%m/%d/%Y %I:%M %p")
+    except (ValueError, TypeError):
+        return timestamp
 def csv_report(report):
-    # TT: Neutralize spreadsheet formulas in imported text fields.
-    stream = StringIO(newline="")
-    writer = csv.writer(stream)
-    writer.writerow(["Period", report["period"], "Start", report["start"], "End", report["end"]])
-    writer.writerow(["Sale ID", "Timestamp", "Subtotal", "Tax", "Total"])
-    for row in report["rows"]:
-        values = [row[k] for k in ("sale_id", "timestamp", "subtotal", "tax", "total")]
-        writer.writerow(["'" + v if isinstance(v, str) and v.lstrip().startswith(("=", "+", "-", "@"))
-                         else v for v in values])
-    writer.writerow(["TOTAL", report["count"], report["subtotal"], report["tax"], report["total"]])
-    return stream.getvalue()
 
+    # TT: Neutralize spreadsheet formulas in imported text fields.
+
+    stream = StringIO(newline="")
+
+    writer = csv.writer(stream)
+
+    writer.writerow([
+        "Period",
+        report["period"],
+        "Start",
+        report["start"],
+        "End",
+        report["end"]
+    ])
+
+    writer.writerow([
+        "Sale ID",
+        "Timestamp",
+        "Subtotal",
+        "Tax",
+        "Total"
+    ])
+
+    for row in report["rows"]:
+
+        values = [
+            row["sale_id"],
+            format_report_timestamp(row["timestamp"]),
+            row["subtotal"],
+            row["tax"],
+            row["total"]
+        ]
+
+        writer.writerow([
+            "'" + v
+            if isinstance(v, str)
+            and v.lstrip().startswith(("=", "+", "-", "@"))
+            else v
+            for v in values
+        ])
+
+    writer.writerow([
+        "TOTAL",
+        report["count"],
+        report["subtotal"],
+        report["tax"],
+        report["total"]
+    ])
+
+    return stream.getvalue()
 
 def pdf_report(report):
     from reportlab.lib import colors

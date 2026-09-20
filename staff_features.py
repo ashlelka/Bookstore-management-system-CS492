@@ -1,10 +1,11 @@
 """T2-001 / T2-009: management screens integrated with existing staff accounts."""
 from datetime import date
+from datetime import datetime
 from secrets import token_urlsafe
 from hmac import compare_digest
 from flask import Blueprint, abort, redirect, render_template, request, session, url_for, Response
 from users import get_user, has_permission
-from customer_management import (load_customers, get_customer, save_customer,
+from customer_management import (load_customers, get_customer, save_customer, delete_customer,
                                  CustomerStoreError, CustomerConflictError)
 from sales_reports import generate_report, csv_report, pdf_report, ReportDataError
 
@@ -35,7 +36,13 @@ def prevent_private_cache(response):
 @staff_bp.errorhandler(CustomerStoreError)
 def customer_store_error(error):
     return render_template("staff_error.html", message=str(error)), 503
-
+def format_timestamp(timestamp):
+    """Format an ISO timestamp for display in the sales report."""
+    try:
+        dt = datetime.fromisoformat(timestamp)
+        return dt.strftime("%m/%d/%Y %I:%M %p")
+    except (ValueError, TypeError):
+        return timestamp
 
 @staff_bp.get("/reports")
 def reports():
@@ -44,10 +51,10 @@ def reports():
     try:
         report = generate_report(period, anchor)
     except ReportDataError as exc:
-        return render_template("reports.html", report=None, period=period, anchor=anchor,
+        return render_template("reports.html", report=None, period=period, anchor=anchor, format_timestamp=format_timestamp,
                                error=str(exc)), 503
     except (ValueError, KeyError, TypeError, ArithmeticError):
-        return render_template("reports.html", report=None, period=period, anchor=anchor,
+        return render_template("reports.html", report=None, period=period, anchor=anchor, format_timestamp=format_timestamp,
                                error="Cannot generate report. Check the date, period, and sales records."), 400
     output = request.args.get("format", "html")
     if output in ("csv", "pdf"):
@@ -56,7 +63,7 @@ def reports():
                         headers={"Content-Disposition": f"attachment; filename=sales-{period}-{report['start']}.{output}"})
     if output != "html":
         abort(400)
-    return render_template("reports.html", report=report, period=period, anchor=anchor)
+    return render_template("reports.html", report=report, period=period, anchor=anchor, format_timestamp=format_timestamp)
 
 
 @staff_bp.get("/customers")
@@ -96,3 +103,12 @@ def customer_profile(customer_id):
     if customer is None:
         abort(404)
     return render_template("customer_profile.html", customer=customer)
+
+@staff_bp.post("/customers/<customer_id>/delete")
+def customer_delete(customer_id):
+    try:
+        delete_customer(customer_id)
+    except LookupError:
+        abort(404)
+
+    return redirect(url_for("staff.customers"))
