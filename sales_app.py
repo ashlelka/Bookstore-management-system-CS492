@@ -58,6 +58,10 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 app.register_blueprint(auth_bp)
 
+# TT: Add Sprint 2 reports and customer profiles without changing existing routes.
+from staff_features import staff_bp
+app.register_blueprint(staff_bp)
+
 APP_DIR = Path(__file__).resolve().parent
 
 products = []
