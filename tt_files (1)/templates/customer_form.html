@@ -1,7 +1,0 @@
-{% extends 'staff_base.html' %}{% block content %}<h1>Customer information</h1>
-{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
-<form method="post"><input type="hidden" name="csrf_token" value="{{ session.customer_csrf }}">
-<!-- TT: Detect stale forms so a later save cannot silently replace another edit. -->
-<input type="hidden" name="updated_at" value="{{ customer.get('updated_at', '') }}">
-{% for key, label in [('first_name','First name'),('last_name','Last name'),('email','Email (optional)'),('phone','Phone (optional)')] %}<label>{{ label }}<input name="{{ key }}" value="{{ customer.get(key, '') }}" maxlength="120" type="{{ 'email' if key == 'email' else 'text' }}" {% if key in ['first_name','last_name'] %}required{% endif %}></label>{% endfor %}
-<label>Address (optional)<textarea name="address" maxlength="500">{{ customer.get('address', '') }}</textarea></label><button>Save customer</button></form>{% endblock %}

@@ -1,6 +1,0 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% block title %}Bookstore Management{% endblock %}</title>
-<style>body{font:16px system-ui,sans-serif;background:#f5f3ee;color:#242b35;margin:0}main{max-width:1000px;margin:32px auto;padding:24px;background:white;border-radius:12px}nav{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:28px}a{color:#235b85}table{border-collapse:collapse;width:100%;margin:24px 0}th,td{text-align:left;padding:12px;border-bottom:1px solid #ddd}label{display:block;margin:16px 0}input,select,textarea,button{font:inherit;padding:9px;max-width:100%;box-sizing:border-box}input,textarea{display:block;width:100%;max-width:560px}button{background:#235b85;color:white;border:0;border-radius:5px;cursor:pointer}.error{color:#a32222}.summary{padding:16px;background:#edf3f7}dt{font-weight:bold;margin-top:16px}dd{margin:4px 0;white-space:pre-wrap}.table-wrap{overflow-x:auto}</style></head>
-<body><main><nav><a href="{{ url_for('index') }}">Point of sale</a><a href="{{ url_for('staff.reports') }}">Sales reports</a><a href="{{ url_for('staff.customers') }}">Customers</a></nav>
-{% block content %}{% endblock %}</main></body></html>

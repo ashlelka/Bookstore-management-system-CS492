@@ -1,3 +1,0 @@
-# TT: Keep the team's existing dependency file intact; add PDF export support.
--r requirements.txt
-reportlab==5.0.1
