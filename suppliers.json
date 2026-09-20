@@ -97,18 +97,6 @@
       "notes": "Library and retail fulfillment"
     },
     {
-      "supplier_id": 9,
-      "active": true,
-      "name": "Chronicle Books",
-      "contact_name": "Lee Nguyen",
-      "email": "orders@chronicle.example",
-      "phone": "415-555-0101",
-      "city": "San Francisco",
-      "state": "CA",
-      "categories": "Art, Gift",
-      "notes": "West coast gift books"
-    },
-    {
       "supplier_id": 10,
       "active": true,
       "name": "Independent Publishers Group",
@@ -122,4 +110,3 @@
     }
   ]
 }
-
