@@ -1,0 +1,7 @@
+{% extends 'staff_base.html' %}{% block title %}Sales Reports{% endblock %}{% block content %}
+<h1>Sales reports</h1><form method="get"><label>Report period <select name="period">{% for p in ['daily','weekly','monthly'] %}<option value="{{ p }}" {% if p == period %}selected{% endif %}>{{ p|title }}</option>{% endfor %}</select></label><label>Date within period <input type="date" name="date" value="{{ anchor }}" required></label><button>Generate report</button></form>
+{% if error %}<p role="alert" class="error">{{ error }}</p>{% endif %}
+{% if report %}<h2>{{ report.start }} through {{ report.end }}</h2><p>Weeks run Monday through Sunday. Dates use the bookstore server's local time.</p>
+<p class="summary">{{ report.count }} transactions · Subtotal ${{ report.subtotal }} · Tax ${{ report.tax }} · Total ${{ report.total }}</p>
+<p><a href="{{ url_for('staff.reports', period=period, date=anchor, format='csv') }}">Download CSV</a> · <a href="{{ url_for('staff.reports', period=period, date=anchor, format='pdf') }}">Download PDF</a></p>
+<div class="table-wrap"><table><thead><tr><th>Sale ID</th><th>Timestamp</th><th>Subtotal</th><th>Tax</th><th>Total</th></tr></thead><tbody>{% for row in report.rows %}<tr><td>{{ row.sale_id }}</td><td>{{ row.timestamp }}</td><td>${{ row.subtotal }}</td><td>${{ row.tax }}</td><td>${{ row.total }}</td></tr>{% else %}<tr><td colspan="5">No sales in this period.</td></tr>{% endfor %}</tbody></table></div>{% endif %}{% endblock %}
