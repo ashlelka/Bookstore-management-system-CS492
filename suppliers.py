@@ -106,3 +106,21 @@ def add_supplier(payload):
     suppliers.append(record)
     save_suppliers(suppliers)
     return True, supplier_id
+
+# added edit_supplier function to allow editing of existing supplier records
+# search function from T2-003 is defined as the find_supplier function above
+
+def edit_supplier(supplier_id, payload):
+    #T2-003: edit one supplier row. Returns (ok, message).
+    suppliers = load_suppliers()
+    supplier = find_supplier(supplier_id, suppliers)
+    if not supplier:
+        return False, "Supplier not found."
+    ok, message = validate_supplier(payload, suppliers, ignore_id=supplier_id)
+    if not ok:
+        return False, message
+    for field in FIELDS:
+        supplier[field] = _clean(payload.get(field))
+    supplier["state"] = supplier["state"].upper()
+    save_suppliers(suppliers)
+    return True, "Supplier updated successfully."
