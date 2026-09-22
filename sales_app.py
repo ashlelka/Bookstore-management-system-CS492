@@ -33,7 +33,7 @@ from database import (
     load_sales,
     connection_status
 )
-from suppliers import (add_supplier, find_supplier, load_suppliers, edit_supplier,
+from suppliers import (add_supplier, find_supplier, load_suppliers, edit_supplier, save_suppliers, delete_supplier,
 )
 from purchase_orders import (
     create_purchase_order,
@@ -1349,6 +1349,21 @@ def edit_supplier_route(supplier_id):
         notice=None,
         error=None,
         editing_supplier=supplier,
+    )
+# T2-003 - Delete existing supplier
+@app.post("/suppliers/<int:supplier_id>/delete")
+def delete_supplier_route(supplier_id):
+
+    if not can_manage_suppliers():
+        return redirect(url_for("index"))
+
+    ok, message = delete_supplier(supplier_id)
+
+    return redirect(
+        url_for(
+            "supplier_admin",
+            notice=message,
+        )
     )
     return redirect(url_for("supplier_admin", notice="Added supplier " + str(result) + "."))
 # =========================================================
