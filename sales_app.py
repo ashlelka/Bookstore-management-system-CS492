@@ -6,7 +6,9 @@ from email.message import EmailMessage
 import os
 import io
 import csv
-import matplotlib 
+import matplotlib
+
+import suppliers 
 matplotlib.use("Agg")
 from matplotlib import dates
 import matplotlib.pyplot as plt
@@ -31,7 +33,8 @@ from database import (
     load_sales,
     connection_status
 )
-from suppliers import add_supplier, load_suppliers
+from suppliers import (add_supplier, find_supplier, load_suppliers, edit_supplier,
+)
 from purchase_orders import (
     create_purchase_order,
     find_purchase_order,
@@ -1264,12 +1267,16 @@ def supplier_admin():
     )
 
 
+
 @app.post("/suppliers")
 def create_supplier():
     if not can_manage_suppliers():
         return redirect(url_for("index"))
+
     form = supplier_form_values()
+
     ok, result = add_supplier(form)
+
     if not ok:
         return render_template(
             "suppliers.html",
@@ -1279,7 +1286,70 @@ def create_supplier():
             notice=None,
             error=result,
         )
-    
+
+    return redirect(
+        url_for(
+            "supplier_admin",
+            notice="Added supplier " + str(result) + ".",
+        )
+    )
+
+
+# T2-003 - Edit existing supplier
+@app.route(
+    "/suppliers/<int:supplier_id>/edit",
+    methods=["GET", "POST"]
+)
+def edit_supplier_route(supplier_id):
+
+    if not can_manage_suppliers():
+        return redirect(url_for("index"))
+
+    supplier = find_supplier(supplier_id)
+
+    if supplier is None:
+        return redirect(
+            url_for(
+                "supplier_admin",
+                notice="Supplier not found.",
+            )
+        )
+
+    if request.method == "POST":
+        form = supplier_form_values()
+
+        ok, message = edit_supplier(
+            supplier_id,
+            form,
+        )
+
+        if ok:
+            return redirect(
+                url_for(
+                    "supplier_admin",
+                    notice=message,
+                )
+            )
+
+        return render_template(
+            "suppliers.html",
+            suppliers=load_suppliers(),
+            states=STATES,
+            form=form,
+            notice=None,
+            error=message,
+            editing_supplier=supplier,
+        )
+
+    return render_template(
+        "suppliers.html",
+        suppliers=load_suppliers(),
+        states=STATES,
+        form=supplier,
+        notice=None,
+        error=None,
+        editing_supplier=supplier,
+    )
     return redirect(url_for("supplier_admin", notice="Added supplier " + str(result) + "."))
 # =========================================================
 # Sprint 2 - T2-004

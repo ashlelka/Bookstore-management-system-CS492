@@ -48,13 +48,24 @@ Supplier maintenance interface
 
     <div class="supplier-card">
 
-        <h2>Add Supplier</h2>
+        {% if editing_supplier %}
+            <h2>Edit Supplier</h2>
+        {% else %}
+            <h2>Add Supplier</h2>
+        {% endif %}
 
         <form
-            action="{{ url_for('supplier_admin') }}"
-            method="post"
-            class="supplier-form"
-        >
+        action="{% if editing_supplier %}
+                    {{ url_for(
+                        'edit_supplier_route',
+                     supplier_id=editing_supplier.get('supplier_id')
+                    ) }}
+                {% else %}
+                {{ url_for('create_supplier') }}
+                {% endif %}"
+        method="post"
+        class="supplier-form"
+>
 
             <label for="name">Company Name</label>
 
@@ -151,112 +162,141 @@ Supplier maintenance interface
                 type="submit"
                 class="primary"
             >
-                Add Supplier
+                {% if editing_supplier %}
+                    Save Changes
+                {% else %}
+                    Add Supplier
+                {% endif %}
             </button>
-
+        {% if editing_supplier %}
+            <a
+                href="{{ url_for('supplier_admin') }}"
+                class="ghost"
+            >
+                Cancel Edit
+            </a>
+        {% endif %}
         </form>
 
     </div>
 
 
-    <!-- Existing Suppliers -->
+  <!-- Existing Suppliers -->
 
-    <div class="supplier-card">
+<div class="supplier-card">
 
-        <h2>Current Suppliers</h2>
+    <h2>Current Suppliers</h2>
 
-        {% if suppliers %}
+    {% if suppliers %}
 
-            <div class="supplier-list">
+        <div class="supplier-list">
 
-                {% for supplier in suppliers %}
+            {% for supplier in suppliers %}
 
-                    <div class="supplier-item">
+                <div class="supplier-item">
 
-                        <div class="supplier-title">
+                    <div class="supplier-title">
 
-                            <strong>
-                                {{ supplier.get('name', 'Supplier') }}
-                            </strong>
+                        <strong>
+                            {{ supplier.get('name', 'Supplier') }}
+                        </strong>
 
-                            <span>
-                                ID:
-                                {{ supplier.get('supplier_id', '') }}
-                            </span>
-
-                        </div>
-
-
-                        <div class="supplier-details">
-
-                            {% if supplier.get('contact_name') %}
-                                <p>
-                                    <strong>Contact:</strong>
-                                    {{ supplier.get('contact_name') }}
-                                </p>
-                            {% endif %}
-
-
-                            {% if supplier.get('email') %}
-                                <p>
-                                    <strong>Email:</strong>
-                                    {{ supplier.get('email') }}
-                                </p>
-                            {% endif %}
-
-
-                            {% if supplier.get('phone') %}
-                                <p>
-                                    <strong>Phone:</strong>
-                                    {{ supplier.get('phone') }}
-                                </p>
-                            {% endif %}
-
-
-                            {% if supplier.get('city') or supplier.get('state') %}
-                                <p>
-                                    <strong>Location:</strong>
-
-                                    {{ supplier.get('city', '') }}
-
-                                    {% if supplier.get('city')
-                                          and supplier.get('state') %}
-                                        ,
-                                    {% endif %}
-
-                                    {{ supplier.get('state', '') }}
-                                </p>
-                            {% endif %}
-
-
-                            {% if supplier.get('categories') %}
-                                <p>
-                                    <strong>Categories:</strong>
-                                    {{ supplier.get('categories') }}
-                                </p>
-                            {% endif %}
-
-
-                            {% if supplier.get('notes') %}
-                                <p>
-                                    <strong>Notes:</strong>
-                                    {{ supplier.get('notes') }}
-                                </p>
-                            {% endif %}
-
-                        </div>
+                        <span>
+                            ID:
+                            {{ supplier.get('supplier_id', '') }}
+                        </span>
 
                     </div>
 
-                {% endfor %}
 
-            </div>
+                    <div class="supplier-details">
 
-        {% else %}
+                        {% if supplier.get('contact_name') %}
+                            <p>
+                                <strong>Contact:</strong>
+                                {{ supplier.get('contact_name') }}
+                            </p>
+                        {% endif %}
 
-            <p>No suppliers are currently available.</p>
 
-        {% endif %}
+                        {% if supplier.get('email') %}
+                            <p>
+                                <strong>Email:</strong>
+                                {{ supplier.get('email') }}
+                            </p>
+                        {% endif %}
+
+
+                        {% if supplier.get('phone') %}
+                            <p>
+                                <strong>Phone:</strong>
+                                {{ supplier.get('phone') }}
+                            </p>
+                        {% endif %}
+
+
+                        {% if supplier.get('city') or supplier.get('state') %}
+                            <p>
+                                <strong>Location:</strong>
+
+                                {{ supplier.get('city', '') }}
+
+                                {% if supplier.get('city')
+                                      and supplier.get('state') %}
+                                    ,
+                                {% endif %}
+
+                                {{ supplier.get('state', '') }}
+                            </p>
+                        {% endif %}
+
+
+                        {% if supplier.get('categories') %}
+                            <p>
+                                <strong>Categories:</strong>
+                                {{ supplier.get('categories') }}
+                            </p>
+                        {% endif %}
+
+
+                        {% if supplier.get('notes') %}
+                            <p>
+                                <strong>Notes:</strong>
+                                {{ supplier.get('notes') }}
+                            </p>
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- T2-003: Edit existing supplier -->
+                    <div class="supplier-item-actions">
+
+                        <a
+                            href="{{ url_for(
+                                'edit_supplier_route',
+                                supplier_id=supplier.get('supplier_id')
+                            ) }}"
+                            class="ghost"
+                        >
+                            Edit Supplier
+                        </a>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p>No suppliers are currently available.</p>
+
+    {% endif %}
+
+</div>
 
     </div>
 
