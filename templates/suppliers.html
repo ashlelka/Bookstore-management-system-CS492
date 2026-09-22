@@ -185,8 +185,44 @@ Supplier maintenance interface
 
 <div class="supplier-card">
 
+    <div class="supplier-card">
+
     <h2>Current Suppliers</h2>
 
+    <!-- T2-003: Search supplier records -->
+    <form
+        action="{{ url_for('supplier_admin') }}"
+        method="get"
+        class="supplier-search"
+    >
+
+        <label for="search">
+            Search Suppliers
+        </label>
+
+        <input
+            type="text"
+            id="search"
+            name="search"
+            value="{{ search or '' }}"
+            placeholder="Name, contact, ID, email, city, state, or category"
+        >
+
+        <button
+        type="submit"
+        class="primary"
+    >
+        Search
+    </button>
+    {% if search %}
+        <a
+            href="{{ url_for('supplier_admin') }}"
+            class="ghost"
+        >
+            Clear Search
+        </a>
+    {% endif %}
+</form>
     {% if suppliers %}
 
         <div class="supplier-list">
@@ -310,11 +346,15 @@ Supplier maintenance interface
 
         </div>
 
+    {% if search and not suppliers %}
+
+        <p>No suppliers found matching your search.</p>
     {% else %}
 
-        <p>No suppliers are currently available.</p>
+        <p>No suppliers are currently available. </p>
 
     {% endif %}
+{% endif %}
 
 </div>
 

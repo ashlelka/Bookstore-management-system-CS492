@@ -1254,14 +1254,50 @@ def supplier_form_values():
 def supplier_admin():
     if not can_manage_suppliers():
         return redirect(url_for("index"))
+
+    # T2-003 - Search supplier records
+    search = request.args.get("search", "").strip()
+
+    suppliers = load_suppliers()
+
+    if search:
+        search_lower = search.lower()
+
+        suppliers = [
+            supplier
+            for supplier in suppliers
+            if (
+                search_lower in str(
+                    supplier.get("supplier_id", "")
+                ).lower()
+                or search_lower in supplier.get(
+                    "name", ""
+                ).lower()
+                or search_lower in supplier.get(
+                    "contact_name", ""
+                ).lower()
+                or search_lower in supplier.get(
+                    "email", ""
+                ).lower()
+                or search_lower in supplier.get(
+                    "city", ""
+                ).lower()
+                or search_lower in supplier.get(
+                    "state", ""
+                ).lower()
+                or search_lower in supplier.get(
+                    "categories", ""
+                ).lower()
+            )
+        ]
+
     return render_template(
         "suppliers.html",
-        suppliers=load_suppliers(),
+        suppliers=suppliers,
         states=STATES,
-        form={
-            "name": "", "contact_name": "", "email": "", "phone": "",
-            "city": "", "state": "", "categories": "", "notes": "",
-        },
+        form={"name": "","contact_name": "","email": "","phone": "","city": "","state": "",
+              "categories": "", "notes": "",},
+        search=search,
         notice=request.args.get("notice"),
         error=None,
     )
