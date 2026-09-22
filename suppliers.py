@@ -136,24 +136,36 @@ def delete_supplier(supplier_id):
     """
 
     suppliers = load_suppliers()
-    supplier = find_supplier(supplier_id, suppliers)
+
+    supplier = find_supplier(
+        supplier_id,
+        suppliers
+    )
 
     if not supplier:
         return False, "Supplier not found."
 
-    # Import here to avoid creating unnecessary module dependencies
-    # when supplier management is loaded.
+    # Check existing purchase orders before deleting.
     from purchase_orders import load_purchase_orders
 
     purchase_orders = load_purchase_orders()
 
     for purchase_order in purchase_orders:
-        if str(purchase_order.get("supplier_id")) == str(supplier_id):
+
+        if str(
+            purchase_order.get("supplier_id")
+        ) == str(supplier_id):
+
             return (
                 False,
                 "Supplier cannot be deleted because it is used "
                 "by an existing purchase order."
             )
 
+    # Remove the supplier.
     suppliers.remove(supplier)
+
+    # Save the updated supplier list.
     save_suppliers(suppliers)
+
+    return True, "Supplier deleted successfully."
