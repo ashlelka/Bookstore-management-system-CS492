@@ -494,7 +494,21 @@ def require_staff():
     # If the visitor is not signed in, send them to Greg's secure login page.
     if not current_user():
         return redirect(url_for("auth.login"))
+def format_financial_date(timestamp):
+    """Format stored sale timestamps for the financial dashboard."""
 
+    if not timestamp:
+        return ""
+
+    try:
+        sale_date = datetime.fromisoformat(str(timestamp))
+
+        return sale_date.strftime(
+            "%m/%d/%Y %I:%M %p"
+        )
+
+    except (ValueError, TypeError):
+        return str(timestamp)
 # =========================================================
 # T2-007 - Financial Dashboard
 # Developer: Gregory Krautkremer
@@ -573,6 +587,7 @@ def financial_dashboard():
         total_revenue=total_revenue,
         total_expenses=total_expenses,
         total_profit=total_profit,
+        format_financial_date=format_financial_date,
     )
 # =========================================================
 # T2-007 - Financial Dashboard Chart
