@@ -7,6 +7,7 @@ from flask import Blueprint, abort, redirect, render_template, request, session,
 from users import get_user, has_permission
 from customer_management import (load_customers, get_customer, save_customer, delete_customer,
                                  CustomerStoreError, CustomerConflictError)
+from customer_history import search_customers, purchases_for_customer, purchase_summary
 from sales_reports import generate_report, csv_report, pdf_report, ReportDataError
 
 staff_bp = Blueprint("staff", __name__)
@@ -68,7 +69,9 @@ def reports():
 
 @staff_bp.get("/customers")
 def customers():
-    return render_template("customers.html", customers=load_customers())
+    # T2-010: search customer records (Alexis)
+    query = request.args.get("q", "")
+    return render_template("customers.html", customers=search_customers(query), query=query)
 
 
 @staff_bp.route("/customers/new", methods=["GET", "POST"])
@@ -102,7 +105,14 @@ def customer_profile(customer_id):
     customer = get_customer(customer_id)
     if customer is None:
         abort(404)
-    return render_template("customer_profile.html", customer=customer)
+    # T2-010: purchase history joined from sales.json
+    purchases = purchases_for_customer(customer)
+    return render_template(
+        "customer_profile.html",
+        customer=customer,
+        purchases=purchases,
+        purchase_summary=purchase_summary(purchases),
+    )
 
 @staff_bp.post("/customers/<customer_id>/delete")
 def customer_delete(customer_id):

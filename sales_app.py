@@ -63,6 +63,7 @@ app.register_blueprint(auth_bp)
 
 # TT: Add Sprint 2 reports and customer profiles without changing existing routes.
 from staff_features import staff_bp
+from customer_management import CustomerStoreError, get_customer, load_customers
 app.register_blueprint(staff_bp)
 
 APP_DIR = Path(__file__).resolve().parent
@@ -935,6 +936,12 @@ def index():
     })
     totals = calc_totals(tax_rate())
     low_stock_books = get_low_stock_books()
+    try:
+        customers = load_customers()
+        selected_customer = get_customer(session.get("sale_customer_id"))
+    except CustomerStoreError:
+        customers = []
+        selected_customer = None
     return render_template(
         "pos.html",
         categories=categories(),
@@ -950,6 +957,8 @@ def index():
         money=money,
         banner=session.get("banner"),
         low_stock_books=low_stock_books,
+        customers=customers,
+        selected_customer=selected_customer,
         can_checkout=bool(cart_lines()) and bool(selected_state()) and can_use_pos(),
     )
 
@@ -1005,6 +1014,13 @@ def clear_cart():
     return redirect_home()
 
 
+@app.post("/sale-customer")
+def set_sale_customer():
+    # T2-010: attach a customer profile to the next checkout.
+    session["sale_customer_id"] = (request.form.get("customer_id") or "").strip() or None
+    return redirect_home()
+
+
 @app.post("/tax")
 def set_tax():
     # T1-006: cashier picks a state; tax_rates.json supplies the percentage.
@@ -1032,10 +1048,20 @@ def checkout():
     # Save the completed sale to sales.json.
     cashier = current_user()
 
+    customer = None
+    try:
+        customer = get_customer(
+            request.form.get("customer_id") or session.get("sale_customer_id")
+        )
+    except CustomerStoreError:
+        customer = None
+
     record_sale(
         sale,
-        cashier
+        cashier,
+        customer,
     )
+    session.pop("sale_customer_id", None)
 
     session["cart"] = {}
     session["last_receipt"] = sale["receipt"]
