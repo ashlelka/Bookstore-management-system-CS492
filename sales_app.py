@@ -57,14 +57,26 @@ from users import (
     set_permissions,
 )
 app = Flask(__name__, static_folder="Static")
-app.secret_key = "bookstore-pos-dev"
+
 # T1-008 Session Security
+# Use an environment variable for the secret key on Render.
+# The fallback keeps local development working.
+app.config["SECRET_KEY"] = os.environ.get(
+    "SECRET_KEY",
+    "bookstore-pos-dev"
+)
+
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=5)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-app.register_blueprint(auth_bp)
+# Secure cookies are enabled when running on Render.
+# Local development can continue using HTTP.
+app.config["SESSION_COOKIE_SECURE"] = (
+    os.environ.get("RENDER") == "true"
+)
 
+app.register_blueprint(auth_bp)
 # TT: Add Sprint 2 reports and customer profiles without changing existing routes.
 from staff_features import staff_bp
 from customer_management import CustomerStoreError, get_customer, load_customers
