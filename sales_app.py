@@ -44,6 +44,7 @@ from purchase_orders import (
     find_purchase_order,
     load_purchase_orders,
     update_purchase_order_status,
+    calculate_total_expenses,
 )
 from users import (
     PERMISSIONS,
@@ -600,14 +601,10 @@ def financial_dashboard():
         for record in financial_records
     )
 
-    total_expenses = sum(
-        record["expenses"]
-        for record in financial_records
-    )
+    total_expenses = calculate_total_expenses()
 
-    total_profit = sum(
-        record["profit"]
-        for record in financial_records
+    total_profit = (
+        total_revenue - total_expenses
     )
 
     return render_template(
@@ -686,7 +683,46 @@ def financial_dashboard_chart():
         revenues.append(revenue)
         expenses.append(expense)
         profits.append(profit)
+    # T2-004 / T2-007 Integration:
+    # Add received purchase orders as expense events.
+    purchase_orders = load_purchase_orders()
 
+    for order in purchase_orders:
+
+        if not order.get(
+            "inventory_received",
+            False,
+        ):
+            continue
+
+        order_date = order.get(
+            "order_date",
+            "Unknown",
+        )
+
+        try:
+            expense = float(
+                order.get("order_total") or 0
+            )
+        except (TypeError, ValueError):
+            expense = 0.0
+
+        try:
+            parsed_date = datetime.fromisoformat(
+                str(order_date)
+            )
+
+            formatted_date = parsed_date.strftime(
+                "%b %d, %I:%M %p"
+            )
+
+        except (ValueError, TypeError):
+            formatted_date = str(order_date)
+
+        dates.append(formatted_date)
+        revenues.append(0.0)
+        expenses.append(expense)
+        profits.append(-expense)
     # Create Greg's financial performance chart
     fig, ax = plt.subplots(
         figsize=(10, 5)
@@ -894,7 +930,7 @@ def export_financial_data():
 
     writer.writerow([
         "Date",
-        "Sale ID",
+        "Transaction ID",
         "Revenue",
         "Expenses",
         "Profit",
@@ -932,7 +968,47 @@ def export_financial_data():
             f"{expenses:.2f}",
             f"{profit:.2f}",
         ])
+    # T2-004 / T2-007 Integration:
+    # Export received purchase orders as expenses.
+    purchase_orders = load_purchase_orders()
 
+    for order in purchase_orders:
+
+        if not order.get(
+            "inventory_received",
+            False,
+        ):
+            continue
+
+        order_date = order.get(
+            "order_date",
+            "Unknown",
+        )
+
+        purchase_order_id = (
+            "PO-"
+            + str(
+                order.get(
+                    "purchase_order_id",
+                    "",
+                )
+            )
+        )
+
+        try:
+            expense = float(
+                order.get("order_total") or 0
+            )
+        except (TypeError, ValueError):
+            expense = 0.0
+
+        writer.writerow([
+            order_date,
+            purchase_order_id,
+            "0.00",
+            f"{expense:.2f}",
+            f"{-expense:.2f}",
+        ])
     csv_data = output.getvalue()
 
     output.close()
@@ -1579,6 +1655,7 @@ def create_purchase_order_route():
     supplier_id = request.form.get("supplier_id", "").strip()
     book_id = request.form.get("book_id", "").strip()
     quantity = request.form.get("quantity", "").strip()
+    unit_cost = request.form.get("unit_cost", "").strip()
     notes = request.form.get("notes", "").strip()
 
     # Find the selected book in Ashley's inventory.
@@ -1607,6 +1684,7 @@ def create_purchase_order_route():
             "book_id": selected_book.get("book_id"),
             "title": selected_book.get("title"),
             "quantity": quantity,
+            "unit_cost": unit_cost,
         }
     ]
 

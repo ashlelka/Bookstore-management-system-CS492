@@ -164,7 +164,7 @@ report(
     response.status_code == 200
     and "text/csv" in response.content_type
     and "Date" in csv_data
-    and "Sale ID" in csv_data
+    and "Transaction ID" in csv_data
     and "Revenue" in csv_data
     and "Expenses" in csv_data
     and "Profit" in csv_data,

@@ -125,6 +125,41 @@
           "notification": "LOW STOCK ALERT: The Great Gatsby has 3 remaining. Reorder threshold: 5."
         }
       ]
+    },
+    {
+      "sale_id": "SALE-1043",
+      "timestamp": "2026-09-23T16:26:13.396481",
+      "cashier_user_id": 1,
+      "cashier_username": "admin1",
+      "cashier_name": "Ashley Lindamood",
+      "tax_state": "KS",
+      "tax_rate": 6.5,
+      "subtotal": 15.0,
+      "tax": 0.9750000000000001,
+      "total": 15.975,
+      "items": [
+        {
+          "book_id": "8",
+          "isbn": "9780857687579",
+          "title": "Legacy of Blood",
+          "qty": 1,
+          "unit_price": 15.0,
+          "line_total": 15.0,
+          "exempt": false
+        }
+      ],
+      "inventory_results": [
+        {
+          "book_id": 8,
+          "success": true,
+          "message": "Inventory updated successfully.",
+          "remaining_quantity": 24,
+          "reorder_threshold": 5,
+          "stock_status": "In Stock",
+          "low_stock": false,
+          "notification": null
+        }
+      ]
     }
   ]
 }

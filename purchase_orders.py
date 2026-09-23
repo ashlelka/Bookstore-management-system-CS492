@@ -9,6 +9,7 @@ BMS-005 Purchase Order Management:
   - Store purchase order records
   - Track purchase order status
   - Update inventory when purchase orders are received
+  - Track received purchase orders as business expenses
 """
 
 import json
@@ -22,6 +23,10 @@ from suppliers import find_supplier
 APP_DIR = Path(__file__).resolve().parent
 PURCHASE_ORDERS_PATH = APP_DIR / "purchase_orders.json"
 
+
+# ---------------------------------------------------------
+# LOAD PURCHASE ORDERS
+# ---------------------------------------------------------
 
 def load_purchase_orders():
     """Load all purchase orders from purchase_orders.json."""
@@ -42,6 +47,10 @@ def load_purchase_orders():
     return data.get("purchase_orders") or []
 
 
+# ---------------------------------------------------------
+# SAVE PURCHASE ORDERS
+# ---------------------------------------------------------
+
 def save_purchase_orders(purchase_orders):
     """Save purchase orders to purchase_orders.json."""
 
@@ -54,6 +63,10 @@ def save_purchase_orders(purchase_orders):
         ) + "\n"
     )
 
+
+# ---------------------------------------------------------
+# GENERATE PURCHASE ORDER ID
+# ---------------------------------------------------------
 
 def next_purchase_order_id(
     purchase_orders=None,
@@ -76,6 +89,10 @@ def next_purchase_order_id(
     ) + 1
 
 
+# ---------------------------------------------------------
+# FIND PURCHASE ORDER
+# ---------------------------------------------------------
+
 def find_purchase_order(
     purchase_order_id,
     purchase_orders=None,
@@ -88,6 +105,7 @@ def find_purchase_order(
         purchase_orders = load_purchase_orders()
 
     for order in purchase_orders:
+
         if str(
             order.get("purchase_order_id")
         ) == target:
@@ -95,6 +113,10 @@ def find_purchase_order(
 
     return None
 
+
+# ---------------------------------------------------------
+# CREATE PURCHASE ORDER
+# ---------------------------------------------------------
 
 def create_purchase_order(
     supplier_id,
@@ -105,12 +127,17 @@ def create_purchase_order(
     """
     Create and save a new purchase order.
 
-    items should contain dictionaries such as:
+    Each purchase order item can contain:
+
     {
         "book_id": 1,
         "title": "Book Title",
-        "quantity": 5
+        "quantity": 5,
+        "unit_cost": 6.50
     }
+
+    The line total and complete order total are
+    calculated automatically.
     """
 
     supplier = find_supplier(supplier_id)
@@ -126,11 +153,14 @@ def create_purchase_order(
 
     clean_items = []
 
+    # Validate and prepare every purchase order item.
     for item in items:
+
         title = str(
             item.get("title") or ""
         ).strip()
 
+        # Validate quantity.
         try:
             quantity = int(
                 item.get("quantity") or 0
@@ -153,13 +183,48 @@ def create_purchase_order(
                 "Book quantity must be greater than zero.",
             )
 
+        # Validate the supplier cost for one book.
+        try:
+            unit_cost = float(
+                item.get("unit_cost") or 0
+            )
+        except (TypeError, ValueError):
+            return (
+                False,
+                "Book unit cost must be a valid number.",
+            )
+
+        if unit_cost < 0:
+            return (
+                False,
+                "Book unit cost cannot be negative.",
+            )
+
+        # Calculate the cost of this PO line.
+        line_total = round(
+            quantity * unit_cost,
+            2,
+        )
+
         clean_items.append(
             {
                 "book_id": item.get("book_id"),
                 "title": title,
                 "quantity": quantity,
+                "unit_cost": unit_cost,
+                "line_total": line_total,
             }
         )
+
+    # Calculate the total cost of the complete
+    # purchase order.
+    order_total = round(
+        sum(
+            item["line_total"]
+            for item in clean_items
+        ),
+        2,
+    )
 
     purchase_orders = load_purchase_orders()
 
@@ -179,6 +244,10 @@ def create_purchase_order(
             "%Y-%m-%d %H:%M:%S"
         ),
         "items": clean_items,
+
+        # Financial value of the purchase order.
+        "order_total": order_total,
+
         "notes": str(notes or "").strip(),
 
         # Prevent the same shipment from being
@@ -194,6 +263,10 @@ def create_purchase_order(
 
     return True, purchase_order_id
 
+
+# ---------------------------------------------------------
+# RECEIVE PURCHASE ORDER
+# ---------------------------------------------------------
 
 def receive_purchase_order(order):
     """
@@ -242,6 +315,7 @@ def receive_purchase_order(order):
         matching_book = None
 
         for book in books:
+
             if str(
                 book.get("book_id")
             ) == str(item_book_id):
@@ -284,6 +358,10 @@ def receive_purchase_order(order):
 
     return True, "Inventory updated."
 
+
+# ---------------------------------------------------------
+# UPDATE PURCHASE ORDER STATUS
+# ---------------------------------------------------------
 
 def update_purchase_order_status(
     purchase_order_id,
@@ -387,4 +465,54 @@ def update_purchase_order_status(
     return (
         True,
         "Purchase order status updated.",
+    )
+
+
+# ---------------------------------------------------------
+# CALCULATE PURCHASE ORDER EXPENSES
+# T2-004 / T2-007 Integration
+# ---------------------------------------------------------
+
+def calculate_total_expenses():
+    """
+    Calculate total bookstore expenses from
+    purchase orders that have been received.
+
+    Pending, Ordered, and Cancelled orders do
+    not count as expenses.
+
+    Received orders count as expenses.
+
+    Closed orders that were previously received
+    remain expenses but are not counted twice.
+    """
+
+    purchase_orders = load_purchase_orders()
+
+    total_expenses = 0.0
+
+    for order in purchase_orders:
+
+        # inventory_received remains True after
+        # a Received order becomes Closed.
+        if not order.get(
+            "inventory_received",
+            False,
+        ):
+            continue
+
+        try:
+            order_total = float(
+                order.get(
+                    "order_total"
+                ) or 0
+            )
+        except (TypeError, ValueError):
+            order_total = 0.0
+
+        total_expenses += order_total
+
+    return round(
+        total_expenses,
+        2,
     )

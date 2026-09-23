@@ -93,7 +93,7 @@
         "edition": "",
         "format": "Paperback",
         "price": 15.0,
-        "quantity": 25,
+        "quantity": 35,
         "reorder_threshold": 5,
         "location": "F2"
     },
@@ -107,7 +107,7 @@
         "edition": "",
         "format": "Paperback",
         "price": 15.0,
-        "quantity": 25,
+        "quantity": 24,
         "reorder_threshold": 5,
         "location": "F3"
     },
