@@ -1154,3 +1154,42 @@ h1 { margin: 0; font-size: 1.45rem; }
     left: 0;
   }
 }
+/* =====================================================
+   T2-005 - Customer Experience
+   Improved Search and Navigation
+   ===================================================== */
+
+.catalog-content {
+    width: 100%;
+    display: block;
+}
+
+.catalog-search {
+    width: 100%;
+    margin: 18px 0 20px;
+}
+
+.catalog-search-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.catalog-search-form label {
+    width: 100%;
+    font-weight: 600;
+}
+
+.catalog-search-form input[type="text"] {
+    width: 260px;
+    padding: 10px 12px;
+    border: 1px solid #d6c8b8;
+    border-radius: 8px;
+    font: inherit;
+}
+
+.catalog-search-form button,
+.catalog-search-form .ghost {
+    white-space: nowrap;
+}

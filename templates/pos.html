@@ -230,44 +230,144 @@ Ashley Lindamood
 
 
   <!-- ===================================================
-       Product Catalog
-       =================================================== -->
+     Product Catalog
+     =================================================== -->
 
-  <section class="catalog">
+<section class="catalog">
 
 
-    <!-- Categories -->
+  <!-- =====================================================
+       T2-005 - Customer Experience: Improved Navigation
+       ===================================================== -->
 
-    <nav
-      class="categories"
-      id="categories"
-    >
+  <nav
+    class="categories"
+    id="categories"
+    aria-label="Book categories"
+  >
 
-      {% for c in categories %}
+    {% for c in categories %}
 
-        <a
-          class="cat-btn{% if c == active %} active{% endif %}"
-          href="{{ url_for('index', cat=c) }}"
-        >
+      <a
+        class="cat-btn{% if c == active %} active{% endif %}"
+        href="{{ url_for(
+          'index',
+          cat=c,
+          search=search
+        ) }}"
+        {% if c == active %}
+          aria-current="page"
+        {% endif %}
+      >
+        {% if c == 'All' %}
+          All Books
+        {% else %}
           {{ c }}
-        </a>
+        {% endif %}
+      </a>
 
-      {% endfor %}
+    {% endfor %}
 
-    </nav>
+  </nav>
 
 
-    <!-- Product Grid -->
+  <!-- =====================================================
+       T2-005 - Customer Experience: Search and Catalog
+       ===================================================== -->
+
+  <div class="catalog-content">
+
+
+    <!-- =====================================================
+         T2-005 - Customer Experience: Improved Book Search
+         ===================================================== -->
+
+    <div class="catalog-search">
+
+      <form
+        action="{{ url_for('index') }}"
+        method="get"
+        class="catalog-search-form"
+      >
+
+        <!-- Preserve the selected category while searching -->
+        {% if active and active != 'All' %}
+
+          <input
+            type="hidden"
+            name="cat"
+            value="{{ active }}"
+          >
+
+        {% endif %}
+
+
+        <label for="book-search">
+          Search Books
+        </label>
+
+
+        <input
+          type="text"
+          id="book-search"
+          name="search"
+          value="{{ search or '' }}"
+          placeholder="Title, author, or ISBN"
+        >
+
+
+        <button
+          type="submit"
+          class="primary"
+        >
+          Search
+        </button>
+
+
+        {% if search %}
+
+          <a
+            href="{{ url_for(
+              'index',
+              cat=active
+            ) }}"
+            class="ghost"
+          >
+            Clear Search
+          </a>
+
+        {% endif %}
+
+      </form>
+
+    </div>
+
+
+    <!-- =====================================================
+         Product Grid
+         ===================================================== -->
 
     <div
       class="grid"
       id="productGrid"
     >
 
+
       {% if not tiles %}
 
         <div class="empty">
-          No products in this category.
+
+          {% if search %}
+
+            No books found matching
+            "<strong>{{ search }}</strong>".
+
+          {% else %}
+
+            No products in this category.
+
+          {% endif %}
+
         </div>
 
       {% endif %}
@@ -361,10 +461,16 @@ Ashley Lindamood
 
       {% endfor %}
 
+
     </div>
+    <!-- End Product Grid -->
 
-  </section>
 
+  </div>
+  <!-- End T2-005 Search and Catalog -->
+
+
+</section>
 
   <!-- ===================================================
        Sales Ticket

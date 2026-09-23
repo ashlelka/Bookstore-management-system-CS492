@@ -3,9 +3,12 @@ from datetime import datetime
 from http import server
 
 from email.message import EmailMessage
+from itertools import product
+from itertools import product
 import os
 import io
 import csv
+from re import search
 import matplotlib
 
 import suppliers 
@@ -925,15 +928,47 @@ def index():
     load_tax_rates()
     load_products()
     active = request.args.get("cat", "All")
+    # T2-005 - Customer experience: improved book search
+    search = request.args.get("search", "").strip().lower()
     tiles = []
     for product in visible_products(active):
+        
+        # T2-005 - Search by title, author, or ISBN
+        if search:
+            book_title = str(
+                product.get("name", "")
+            ).lower()
+
+            book_author = str(
+                product.get("author", "")
+            ).lower()
+
+            book_isbn = str(
+                product.get("isbn", "")
+            ).lower()
+
+            if (
+                search not in book_title
+                and search not in book_author
+                and search not in book_isbn
+            ):
+                continue
+
         available = stock_left(product)
+
         tiles.append({
             **product,
             "available": available,
-            "out_of_stock": available is not None and available <= 0,
-            "low": available is not None and 0 < available <= product["reorder_threshold"],
-    })
+            "out_of_stock": (
+                available is not None
+                and available <= 0
+            ),
+            "low": (
+                available is not None
+                and 0 < available
+                <= product["reorder_threshold"]
+            ),
+        })
     totals = calc_totals(tax_rate())
     low_stock_books = get_low_stock_books()
     try:
@@ -946,6 +981,7 @@ def index():
         "pos.html",
         categories=categories(),
         active=active,
+        search=search,
         tiles=tiles,
         lines=cart_lines(),
         item_count=item_count(),
