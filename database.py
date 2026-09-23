@@ -199,13 +199,25 @@ def interconnect_sale(sale, cashier):
     }
 
 
-def record_sale(sale, cashier):
+def record_sale(sale, cashier, customer=None):
     """NF-003: persist the joined sale after checkout."""
     sales = load_sales()
-    sales.append(interconnect_sale(sale, cashier))
-    save_sales(sales)
-    return sales[-1]
 
+    sale_record = interconnect_sale(sale, cashier)
+
+    # T2-010 - Connect the selected customer to the sale.
+    if customer:
+        sale_record["customer_id"] = customer.get("customer_id")
+        sale_record["customer_email"] = customer.get("email")
+        sale_record["customer_name"] = (
+            f"{customer.get('first_name', '')} "
+            f"{customer.get('last_name', '')}"
+        ).strip()
+
+    sales.append(sale_record)
+    save_sales(sales)
+
+    return sales[-1]
 
 def _tax_ok(tax_code):
     load_tax_rates()
