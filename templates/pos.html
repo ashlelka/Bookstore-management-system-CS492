@@ -160,7 +160,21 @@ Ashley Lindamood
   </div>
 
 </header>
+<!-- =====================================================
+     T2-006 - Customer Experience: Confirmation Message
+     ===================================================== -->
 
+  {% if pos_message %}
+
+    <div
+      class="pos-message"
+      role="status"
+      aria-live="polite"
+    >
+      {{ pos_message }}
+    </div>
+
+  {% endif %}
 
 <!-- =====================================================
      T1-004 Low Stock Alert

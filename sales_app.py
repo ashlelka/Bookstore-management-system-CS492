@@ -992,6 +992,7 @@ def index():
         format_rate=format_rate,
         money=money,
         banner=session.get("banner"),
+        pos_message=session.pop("pos_message", None),
         low_stock_books=low_stock_books,
         customers=customers,
         selected_customer=selected_customer,
@@ -1003,13 +1004,30 @@ def index():
 def add(pid):
     if not can_use_pos():
         return redirect_home()
+
     product = product_by_id(pid)
     available = stock_left(product) if product else 0
+
     if product and (available is None or available > 0):
         c = cart()
         c[str(pid)] = qty_in_cart(pid) + 1
         session.modified = True
         session.pop("banner", None)
+
+        # T2-006 - Customer Experience:
+        # Confirm that the book was added to the ticket.
+        session["pos_message"] = (
+            f'{product.get("name", "Book")} '
+            "was added to the ticket."
+        )
+
+    elif product:
+        # T2-006 - Inventory availability feedback
+        session["pos_message"] = (
+            f'{product.get("name", "Book")} '
+            "is currently out of stock."
+        )
+
     return redirect_home()
 
 
@@ -1037,9 +1055,24 @@ def change_qty(pid, delta):
 
 @app.post("/remove/<pid>")
 def remove_item(pid):
+    product = product_by_id(pid)
+
     cart().pop(str(pid), None)
     session.modified = True
     session.pop("banner", None)
+
+    # T2-006 - Customer Experience:
+    # Confirm that the book was removed.
+    if product:
+        session["pos_message"] = (
+            f'{product.get("name", "Book")} '
+            "was removed from the ticket."
+        )
+    else:
+        session["pos_message"] = (
+            "Item was removed from the ticket."
+        )
+
     return redirect_home()
 
 
@@ -1047,6 +1080,13 @@ def remove_item(pid):
 def clear_cart():
     session["cart"] = {}
     session.pop("banner", None)
+
+    # T2-006 - Customer Experience:
+    # Confirm that the ticket was cleared.
+    session["pos_message"] = (
+        "The ticket was cleared."
+    )
+
     return redirect_home()
 
 
@@ -1123,6 +1163,7 @@ def receipt():
         receipt_text=text,
         sale_id=session.get("last_sale_id", "receipt"),
         banner=session.get("banner"),
+        pos_message=session.pop("pos_message", None),
         email_message=request.args.get("email_message"),
         email_success=request.args.get("email_success")
     )
