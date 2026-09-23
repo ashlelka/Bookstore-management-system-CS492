@@ -1,1 +1,42 @@
-[]
+[
+  {
+    "customer_id": "c1a9e4d0b7f24a8e91d63c5b0a12f8e4",
+    "first_name": "Maya",
+    "last_name": "Hernandez",
+    "email": "maya.hernandez@example.com",
+    "phone": "555-0118",
+    "address": "Denver, CO"
+  },
+  {
+    "customer_id": "a77b2c18e9044d6fb3c1d0e5a8f24690",
+    "first_name": "Owen",
+    "last_name": "Patel",
+    "email": "owen.patel@example.com",
+    "phone": "555-0124",
+    "address": "Aurora, CO"
+  },
+  {
+    "customer_id": "5e0d91c3a2b84711bf76e4d8c0139a22",
+    "first_name": "Priya",
+    "last_name": "Shah",
+    "email": "priya.shah@example.com",
+    "phone": "555-0131",
+    "address": "Lakewood, CO"
+  },
+  {
+    "customer_id": "7c8f12a4d53b49b58e607b9c62b85f31",
+    "first_name": "Daniel",
+    "last_name": "Brooks",
+    "email": "daniel.brooks@example.com",
+    "phone": "555-0142",
+    "address": "Denver, CO"
+  },
+  {
+    "customer_id": "9d51f83e742c40d0a48b92e6cb73a104",
+    "first_name": "Sofia",
+    "last_name": "Martinez",
+    "email": "sofia.martinez@example.com",
+    "phone": "555-0155",
+    "address": "Centennial, CO"
+  }
+]

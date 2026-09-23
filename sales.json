@@ -4,6 +4,8 @@
     {
       "sale_id": "SALE-1042",
       "timestamp": "2026-09-10T22:42:45.814872",
+      "customer_id": "c1a9e4d0b7f24a8e91d63c5b0a12f8e4",
+      "customer_email": "maya.hernandez@example.com",
       "cashier_user_id": 1,
       "cashier_username": "admin1",
       "cashier_name": "Ashley Lindamood",
@@ -53,6 +55,8 @@
     {
       "sale_id": "SALE-1042",
       "timestamp": "2026-09-12T19:10:05.135850",
+      "customer_id": "c1a9e4d0b7f24a8e91d63c5b0a12f8e4",
+      "customer_email": "maya.hernandez@example.com",
       "cashier_user_id": 1,
       "cashier_username": "admin1",
       "cashier_name": "Ashley Lindamood",
@@ -88,6 +92,8 @@
     {
       "sale_id": "SALE-1042",
       "timestamp": "2026-09-12T19:41:23.807694",
+      "customer_id": "a77b2c18e9044d6fb3c1d0e5a8f24690",
+      "customer_email": "owen.patel@example.com",
       "cashier_user_id": 6,
       "cashier_username": "testcashier",
       "cashier_name": "Test Employee",

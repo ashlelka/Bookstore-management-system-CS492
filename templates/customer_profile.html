@@ -49,6 +49,47 @@ Customer Profile
 <hr>
 
 
+<h2>Purchase history</h2>
+<p>{{ purchase_summary.count }} sale{% if purchase_summary.count != 1 %}s{% endif %}
+  · ${{ "%.2f"|format(purchase_summary.total) }}</p>
+
+{% if purchases %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Sale</th>
+        <th>Date</th>
+        <th>Items</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sale in purchases %}
+      <tr>
+        <td>{{ sale.get('sale_id', sale.get('id', 'Sale')) }}</td>
+        <td>{{ sale.get('timestamp', '') }}</td>
+        <td>
+          {% for item in sale.get('items', []) %}
+          <div>{{ item.get('qty', 1) }} × {{ item.get('title', item.get('name', 'Item')) }}</div>
+          {% else %}
+          —
+          {% endfor %}
+        </td>
+        <td>${{ "%.2f"|format(sale.get('total', 0) or 0) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>No purchases recorded for this customer yet.</p>
+{% endif %}
+
+
+<hr>
+
+
 <h2>Delete Customer</h2>
 
 <p>
