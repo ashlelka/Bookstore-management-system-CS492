@@ -34,7 +34,8 @@ from user_management import authenticate_user
 from database import (
     record_sale,
     load_sales,
-    connection_status
+    connection_status,
+    next_sale_id,
 )
 from suppliers import (add_supplier, find_supplier, load_suppliers, edit_supplier, save_suppliers, delete_supplier,
 )
@@ -72,7 +73,6 @@ app.register_blueprint(staff_bp)
 APP_DIR = Path(__file__).resolve().parent
 
 products = []
-sale_counter = 1042
 
 
 def as_product(book):
@@ -363,16 +363,20 @@ def update_inventory(sale_items):
 
 
 def build_sale():
-    global sale_counter
     lines = cart_lines()
+
     if not lines:
         return None
+
     state = selected_state()
+
     if not state:
         return None
+
     totals = calc_totals(state["rate"])
+
     sale = {
-        "id": f"SALE-{sale_counter}",
+        "id": next_sale_id(),
         "items": [
             {
                 "productId": line["id"],
@@ -380,19 +384,28 @@ def build_sale():
                 "qty": line["qty"],
                 "unitPrice": line["product"]["price"],
                 "lineTotal": line["line_total"],
-                "exempt": bool(line["product"].get("exempt")),
+                "exempt": bool(
+                    line["product"].get("exempt")
+                ),
             }
             for line in lines
         ],
         **totals,
         "taxState": state["code"],
         "taxStateName": state["name"],
-        "taxLabel": f"{state['code']} tax ({format_rate(state['rate'])}%)",
+        "taxLabel": (
+            f"{state['code']} tax "
+            f"({format_rate(state['rate'])}%)"
+        ),
         "timestamp": datetime.now().isoformat(),
     }
-    sale_counter += 1
-    sale["inventoryResults"] = update_inventory(sale["items"])
+
+    sale["inventoryResults"] = update_inventory(
+        sale["items"]
+    )
+
     sale["receipt"] = generate_receipt(sale)
+
     return sale
 
 

@@ -1,9 +1,11 @@
 from sales_app import app
 from inventory import (
     find_book_by_id,
-    update_book_quantity
+    update_book_quantity,
+    load_books,
 )
-
+import json
+from pathlib import Path
 
 print("\n--- FULL CHECKOUT INTEGRATION TESTS ---")
 
@@ -12,18 +14,38 @@ print("\n--- FULL CHECKOUT INTEGRATION TESTS ---")
 # TEST SETTINGS
 # ---------------------------------------------------------
 
-BOOK_ID = 1
+BOOK_ID = None  # Will be set to the first book with quantity > 0
 USERNAME = "testcashier"
 PASSWORD = "Password123"
+SALES_FILE = Path(__file__).resolve().parent / "sales.json"
+
+# ---------------------------------------------------------
+# BACK UP ORIGINAL SALES.JSON
+# ---------------------------------------------------------
+
+if SALES_FILE.exists():
+    original_sales_file = SALES_FILE.read_text()
+else:
+    original_sales_file = None
 
 
 # ---------------------------------------------------------
 # TEST 1: Find book before checkout
 # ---------------------------------------------------------
 
-book = find_book_by_id(BOOK_ID)
+books = load_books()
+
+book = next(
+    (
+        item for item in books
+        if int(item.get("quantity", 0)) > 0
+    ),
+    None,
+)
 
 if book is not None:
+
+    BOOK_ID = book.get("book_id")
     original_quantity = book["quantity"]
 
     print("PASS: Test book found in inventory.")
@@ -33,15 +55,12 @@ if book is not None:
     )
 
 else:
-    print("FAIL: Test book was not found.")
+
+    print(
+        "FAIL: No in-stock test book "
+        "was found."
+    )
     raise SystemExit
-
-
-# Make sure there is inventory available.
-if original_quantity <= 0:
-    print("FAIL: Test book is out of stock.")
-    raise SystemExit
-
 
 # ---------------------------------------------------------
 # CREATE FLASK TEST CLIENT
@@ -255,5 +274,29 @@ if (
 else:
     print("FAIL: Inventory quantity was not restored.")
 
+# ---------------------------------------------------------
+# RESTORE ORIGINAL SALES.JSON
+# ---------------------------------------------------------
+
+if original_sales_file is not None:
+
+    SALES_FILE.write_text(
+        original_sales_file
+    )
+
+else:
+
+    SALES_FILE.write_text(
+        json.dumps(
+            {
+                "title": "Bookstore Management System",
+                "sales": []
+            },
+            indent=2
+        )
+        + "\n"
+    )
+
+print("PASS: Original sales data restored.")
 
 print("\n--- FULL CHECKOUT TESTING COMPLETE ---")

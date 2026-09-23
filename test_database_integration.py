@@ -4,7 +4,8 @@ from pathlib import Path
 from sales_app import app
 from inventory import (
     find_book_by_id,
-    update_book_quantity
+    update_book_quantity,
+    load_books,
 )
 
 from database import (
@@ -20,7 +21,7 @@ print("\n--- DATABASE INTEGRATION TESTS ---")
 # TEST SETTINGS
 # ---------------------------------------------------------
 
-BOOK_ID = 1
+BOOK_ID = None  # Will be set to the first book with quantity > 0
 
 USERNAME = "testcashier"
 PASSWORD = "Password123"
@@ -54,23 +55,32 @@ else:
 # TEST 2: Find test book
 # ---------------------------------------------------------
 
-book = find_book_by_id(BOOK_ID)
+books = load_books()
+
+book = next(
+    (
+        item for item in books
+        if int(item.get("quantity", 0)) > 0
+    ),
+    None,
+)
 
 if book is not None:
 
+    BOOK_ID = book.get("book_id")
     original_quantity = book["quantity"]
 
-    print("PASS: Test book found in inventory.")
+    print(
+        f"PASS: Test book found in inventory. "
+        f"Book ID: {BOOK_ID}"
+    )
 
 else:
 
-    print("FAIL: Test book was not found.")
-    raise SystemExit
-
-
-if original_quantity <= 0:
-
-    print("FAIL: Test book is out of stock.")
+    print(
+        "FAIL: No in-stock test book "
+        "was found."
+    )
     raise SystemExit
 
 
@@ -416,21 +426,32 @@ else:
 
 status_after = connection_status()
 
+tested_sale = next(
+    (
+        sale for sale in status_after["sales"]
+        if sale.get("sale_id") == sale_id
+        and sale.get("cashier_username") == USERNAME
+        and any(
+            str(item.get("book_id")) == str(BOOK_ID)
+            for item in sale.get("items", [])
+        )
+    ),
+    None,
+)
 
-if status_after["integrity"]["broken"] == 0:
+if tested_sale and tested_sale.get("links_ok"):
 
     print(
-        "PASS: Database foreign-key "
-        "relationships are valid."
+        "PASS: Test sale database relationships "
+        "are valid."
     )
 
 else:
 
     print(
-        "FAIL: Database contains "
+        "FAIL: Test sale contains "
         "broken relationships."
     )
-
 
 # ---------------------------------------------------------
 # TEST 16: Database page

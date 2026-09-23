@@ -1,7 +1,8 @@
 from inventory import (
     find_book_by_id,
     decrement_quantities,
-    update_book_quantity
+    update_book_quantity,
+    load_books
 )
 
 
@@ -12,28 +13,41 @@ print("\n--- POS / INVENTORY INTEGRATION TESTS ---")
 # TEST 1: Find book before sale
 # ---------------------------------------------------------
 
-book_id = 1
+books = load_books()
 
-book = find_book_by_id(book_id)
+book = next(
+    (
+        item for item in books
+        if int(item.get("quantity", 0)) > 0
+    ),
+    None,
+)
 
 if book is not None:
-    print("PASS: Book found before POS sale.")
+
+    book_id = book.get("book_id")
+
+    print(
+        f"PASS: Book found before POS sale. "
+        f"Book ID: {book_id}"
+    )
+
 else:
-    print("FAIL: Book not found.")
+
+    print("FAIL: No in-stock book was found.")
+    raise SystemExit
 
 
 # ---------------------------------------------------------
 # TEST 2: Save original quantity
 # ---------------------------------------------------------
 
-if book is not None:
+original_quantity = book["quantity"]
 
-    original_quantity = book["quantity"]
-
-    print(
-        f"Original quantity for book {book_id}: "
-        f"{original_quantity}"
-    )
+print(
+    f"Original quantity for book {book_id}: "
+    f"{original_quantity}"
+)
 
 
 # ---------------------------------------------------------
@@ -48,7 +62,7 @@ sale_items = [
 ]
 
 
-if book is not None and original_quantity > 0:
+if original_quantity > 0:
 
     decrement_quantities(sale_items)
 
@@ -65,16 +79,18 @@ if (
     updated_book is not None
     and updated_book["quantity"] == original_quantity - 1
 ):
+
     print(
         "PASS: POS sale correctly decreased inventory."
     )
+
 else:
+
     print(
         "FAIL: POS sale did not decrease inventory."
     )
 
 
-print("\n--- POS / INVENTORY TESTING COMPLETE ---")
 # ---------------------------------------------------------
 # TEST 5: Restore original inventory quantity
 # ---------------------------------------------------------
@@ -90,6 +106,12 @@ if (
     restored_book is not None
     and restored_book["quantity"] == original_quantity
 ):
+
     print("PASS: Original inventory quantity restored.")
+
 else:
+
     print("FAIL: Inventory quantity was not restored.")
+
+
+print("\n--- POS / INVENTORY TESTING COMPLETE ---")
